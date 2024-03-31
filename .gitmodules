@@ -1,0 +1,3 @@
+[submodule "FastFileViewer/vendor/GLFW"]
+	path = FastFileViewer/vendor/GLFW
+	url = git@github.com:GoastcraftHD/glfw.git
