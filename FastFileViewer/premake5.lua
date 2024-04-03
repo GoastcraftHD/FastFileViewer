@@ -1,6 +1,5 @@
 project "FastFileViewer"
 	kind "ConsoleApp"
-	staticruntime "on"
 	language "C++"
 	cppdialect "C++20"
 
@@ -45,10 +44,12 @@ project "FastFileViewer"
 
 	filter "configurations:Debug"
 		defines "FFV_DEBUG"
+		links "shaderc_combinedd"
 		runtime "Debug"
 		symbols "on"
 
 	filter "configurations:Release"
 		defines "FFV_RELEASE"
+		links "shaderc_combined"
 		runtime "Release"
 		optimize "on"
