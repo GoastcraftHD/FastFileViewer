@@ -1,0 +1,6 @@
+[submodule "extenal/glm"]
+	path = extenal/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "external/GLFW"]
+	path = external/GLFW
+	url = https://github.com/GoastcraftHD/glfw.git
