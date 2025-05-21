@@ -23,6 +23,7 @@ InstallPremake ()
     fi
 
     # Get Premake
+    mkdir external/premake/bin
     cd external/premake/bin
     wget -nd -O premake.tar.gz "$PREMAKE_URL"
     wget -nd -O LICENSE.txt "$PREMAKE_LICENSE"
