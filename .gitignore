@@ -1,0 +1,17 @@
+# Binaries
+**/bin/
+bin-int/
+
+Makefile
+**.make
+compile_commands.json
+
+.cache/
+
+# Visual Studio files and folder
+.vs/
+**.sln
+**.vcxproj
+**.csproj
+**.vcxproj.filters
+**.vcxproj.user
