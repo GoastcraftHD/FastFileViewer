@@ -15,6 +15,7 @@ VULKAN_SDK = os.getenv("VULKAN_SDK")
 print(VULKAN_SDK)
 
 include("external/GLFW")
+include("external/imgui")
 
 project("FastFileViewer")
 kind("ConsoleApp")
@@ -40,6 +41,7 @@ includedirs({
 	"%{VULKAN_SDK}/include",
 	"external/glm",
 	"external/spdlog/include",
+	"external/imgui",
 })
 
 libdirs({
