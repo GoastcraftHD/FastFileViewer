@@ -1,9 +1,7 @@
 #pragma once
 
 #define FMT_UNICODE 0
-#pragma warning(push, 0)
 #include <spdlog/spdlog.h>
-#pragma warning(pop)
 
 namespace FFV
 {
