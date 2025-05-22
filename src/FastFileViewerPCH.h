@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/Log.h"
+
 #include <algorithm>
 #include <array>
 #include <functional>

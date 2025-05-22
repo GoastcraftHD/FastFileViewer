@@ -39,6 +39,7 @@ includedirs({
 	"external/GLFW/include",
 	"%{VULKAN_SDK}/include",
 	"external/glm",
+	"external/spdlog/include",
 })
 
 libdirs({
@@ -52,6 +53,10 @@ links({
 defines({
 	"GLFW_INCLUDE_NONE",
 })
+
+filter "files:external/spdlog/**.h"
+disablewarnings("warning")
+linkoptions { "-IGNORE:4221" }
 
 filter("system:linux")
 defines("FFV_LINUX")
