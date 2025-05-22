@@ -25,7 +25,7 @@ targetdir("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 objdir("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
 pchheader("FastFileViewerPCH.h")
-pchsource("FastFileViewerPCH.cpp")
+pchsource("src/FastFileViewerPCH.cpp")
 
 files({
 	"src/**.h",
@@ -66,6 +66,20 @@ links({
 filter({ "system:linux", "configurations:Release" })
 buildoptions({
 	"-Werror",
+})
+
+filter("system:windows")
+links({
+	"vulkan-1",
+})
+buildoptions({
+	"/Wall",
+	"/MP",
+})
+
+filter({ "system:windows", "configurations:Release" })
+buildoptions({
+	"/WX",
 })
 
 filter("configurations:Debug")
