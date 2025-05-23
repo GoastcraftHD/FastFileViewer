@@ -8,6 +8,10 @@ namespace FFV
 class Log
 {
   public:
+    /*
+      Initializes the logger.
+      Must be called before any logging function is used.
+     */
     static void Init();
 
     static std::shared_ptr<spdlog::logger>& GetLogger()
