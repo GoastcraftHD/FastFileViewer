@@ -76,6 +76,7 @@ buildoptions({
 })
 
 filter("system:windows")
+defines("FFV_WINDOWS")
 links({
 	"vulkan-1",
 })
