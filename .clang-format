@@ -5,7 +5,7 @@ AlignTrailingComments:
   Kind: Always
 IndentWidth: 4
 IndentPPDirectives: BeforeHash
-IndentExternBlock: Indent
+IndentExternBlock: NoIndent
 IndentCaseLabels: true
 IndentCaseBlocks: true
 BraceWrapping:
@@ -44,7 +44,7 @@ BreakBeforeBraces: Custom
 BreakConstructorInitializers: BeforeColon
 BreakTemplateDeclarations: Yes
 CompactNamespaces: false
-Cpp11BracedListStyle: true
+Cpp11BracedListStyle: false
 EmptyLineAfterAccessModifier: Never
 EmptyLineBeforeAccessModifier: Always
 FixNamespaceComments: true
@@ -59,7 +59,6 @@ SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeCaseColon: false
-SpaceBeforeCpp11BracedList: true
 SpaceBeforeCtorInitializerColon: true
 SpaceBeforeInheritanceColon: true
 SpaceInEmptyBlock: false
@@ -71,3 +70,7 @@ SpacesInLineCommentPrefix:
 SpacesInSquareBrackets: false
 PointerAlignment: Left
 ColumnLimit: 100
+AlignArrayOfStructures: Left
+AlignAfterOpenBracket: Align
+PPIndentWidth: 4
+AccessModifierOffset: -4
