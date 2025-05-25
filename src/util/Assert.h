@@ -15,7 +15,7 @@
      * FFV_ASSERT(false, "", return)
      * @param check: if false the Assert and a breakpoint gets triggerd
      * @param msg: print a debug message
-     * @param execute: (optional) gets executed after the breakpoint
+     * @param execute: gets executed after the breakpoint
      */
     #define FFV_ASSERT(check, msg, execute)                                                    \
         {                                                                                      \
@@ -33,7 +33,7 @@
      * FFV_ASSERT(false, "", return)
      * @param check: if false the Assert gets triggerd
      * @param msg: print a debug message
-     * @param execute: (optional) gets executed after the message has been printed
+     * @param execute: gets executed after the message has been printed
      */
     #define FFV_ASSERT(check, msg, execute)                                                    \
         {                                                                                      \
