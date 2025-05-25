@@ -1,6 +1,8 @@
 #include "Renderer.h"
 
+#include "Application.h"
 #include "FastFileViewerPCH.h"
+#include "GLFW/glfw3.h"
 #include "util/Log.h"
 #include "util/Util.h"
 #include "vulkan/vk_platform.h"
@@ -12,10 +14,16 @@ Renderer::Renderer()
 {
     CreateInstance();
     CreateDebugCallback();
+    CreateSurface(Application::Get()->GetWindow()->GetNativeWindow());
 }
 
 Renderer::~Renderer()
 {
+    PFN_vkDestroySurfaceKHR vkDestroySurface = reinterpret_cast<PFN_vkDestroySurfaceKHR>(
+        vkGetInstanceProcAddr(m_Instance, "vkDestroySurfaceKHR"));
+    FFV_ASSERT(vkDestroySurface, "Cannot fing address of vkDestroySurface", ;);
+    vkDestroySurface(m_Instance, m_Surface, VK_NULL_HANDLE);
+
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger =
         reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
             vkGetInstanceProcAddr(m_Instance, "vkDestroyDebugUtilsMessengerEXT"));
@@ -138,4 +146,9 @@ void Renderer::CreateDebugCallback()
     FFV_TRACE("Created vulkan debug callback!");
 }
 
+void Renderer::CreateSurface(GLFWwindow* window)
+{
+    FFV_CHECK_VK_RESULT(glfwCreateWindowSurface(m_Instance, window, nullptr, &m_Surface));
+    FFV_TRACE("Created GLFW window surface!");
+}
 } // namespace FFV

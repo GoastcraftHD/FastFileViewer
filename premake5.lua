@@ -12,7 +12,6 @@ configurations({
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 VULKAN_SDK = os.getenv("VULKAN_SDK")
-print(VULKAN_SDK)
 
 include("external/GLFW")
 include("external/imgui")
@@ -54,6 +53,7 @@ links({
 
 defines({
 	"GLFW_INCLUDE_NONE",
+	"GLFW_INCLUDE_VULKAN",
 })
 
 filter("files:external/spdlog/**.h")

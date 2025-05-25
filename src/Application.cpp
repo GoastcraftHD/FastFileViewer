@@ -1,17 +1,22 @@
 #include "Application.h"
 
-#include "util/Types.h"
-
-#define GLFW_INCLUDE_VULKAN
 #include "FastFileViewerPCH.h"
 #include "util/Log.h"
+#include "util/Types.h"
+#include "util/Util.h"
 
 #include <GLFW/glfw3.h>
 
 namespace FFV
 {
+
+UniquePtr<Application> Application::s_Instance = nullptr;
+
 Application::Application()
 {
+    FFV_ASSERT(s_Instance, "Application already exists!", return);
+    s_Instance.reset(this);
+
     Log::Init();
 
     FFV_ASSERT(glfwInit(), "Couldn't initilize GLFW!", exit(1));
