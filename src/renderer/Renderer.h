@@ -12,8 +12,10 @@ public:
 
 private:
     void CreateInstance();
+    void CreateDebugCallback();
 
 private:
-    VkInstance m_Instance = nullptr;
+    VkInstance m_Instance = VK_NULL_HANDLE;
+    VkDebugUtilsMessengerEXT m_DebugMessenger = VK_NULL_HANDLE;
 };
 } // namespace FFV
