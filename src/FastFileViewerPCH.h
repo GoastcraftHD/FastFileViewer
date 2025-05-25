@@ -1,8 +1,9 @@
 #pragma once
 
-#include "common/Assert.h"
-#include "common/Log.h"
-#include "common/Types.h"
+#include "util/Assert.h"
+#include "util/Log.h"
+#include "util/Types.h"
+#include "util/Util.h"
 
 #include <algorithm>
 #include <array>

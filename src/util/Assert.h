@@ -1,4 +1,4 @@
-#include "common/Log.h"
+#include "util/Log.h"
 
 #include <filesystem>
 
@@ -21,7 +21,7 @@
         {                                                                                      \
             if (!(check))                                                                      \
             {                                                                                  \
-                FFV_ERROR("Assertion failed at {0}:{1}\n{2}",                                  \
+                FFV_ERROR("Assertion failed at {0}:{1}\n                {2}",                  \
                           std::filesystem::path(__FILE__).filename().string(), __LINE__, msg); \
                 FFV_DEBUG_BREAK();                                                             \
                 execute;                                                                       \
@@ -39,7 +39,7 @@
         {                                                                                      \
             if (!(check))                                                                      \
             {                                                                                  \
-                FFV_ERROR("Assertion failed at {0}:{1}\n{2}",                                  \
+                FFV_ERROR("Assertion failed at {0}:{1}\n                {2}",                  \
                           std::filesystem::path(__FILE__).filename().string(), __LINE__, msg); \
                 execute;                                                                       \
             }                                                                                  \

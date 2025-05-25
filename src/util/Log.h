@@ -7,7 +7,7 @@ namespace FFV
 {
 class Log
 {
-  public:
+public:
     /*
       Initializes the logger.
       Must be called before any logging function is used.
@@ -19,7 +19,7 @@ class Log
         return s_Logger;
     }
 
-  private:
+private:
     static std::shared_ptr<spdlog::logger> s_Logger;
 };
 } // namespace FFV

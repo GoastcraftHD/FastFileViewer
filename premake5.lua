@@ -56,9 +56,9 @@ defines({
 	"GLFW_INCLUDE_NONE",
 })
 
-filter "files:external/spdlog/**.h"
+filter("files:external/spdlog/**.h")
 disablewarnings("warning")
-linkoptions { "-IGNORE:4221" }
+linkoptions({ "-IGNORE:4221" })
 
 filter("system:linux")
 defines("FFV_LINUX")

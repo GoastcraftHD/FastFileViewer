@@ -1,7 +1,8 @@
 #include "FastFileViewerPCH.h"
 #define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include "renderer/Renderer.h"
 
+#include <GLFW/glfw3.h>
 int main()
 {
     FFV::Log::Init();
@@ -18,6 +19,8 @@ int main()
     U32 extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
     FFV_LOG("{0} extensions supported!", extensionCount);
+
+    FFV::Renderer();
 
     while (!glfwWindowShouldClose(window))
     {
