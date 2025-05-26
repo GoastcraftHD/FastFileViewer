@@ -19,13 +19,13 @@ public:
         return m_Window;
     }
 
-    static UniquePtr<Application>& Get()
+    static Application& Get()
     {
-        return s_Instance;
+        return *s_Instance;
     }
 
 private:
-    static UniquePtr<Application> s_Instance;
+    static Application* s_Instance;
     SharedPtr<Window> m_Window;
     SharedPtr<Renderer> m_Renderer;
 };

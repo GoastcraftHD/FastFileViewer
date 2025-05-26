@@ -1,7 +1,8 @@
+#include "FastFileViewerPCH.h"
+
 #include "Renderer.h"
 
 #include "Application.h"
-#include "FastFileViewerPCH.h"
 #include "GLFW/glfw3.h"
 #include "util/Log.h"
 #include "util/Util.h"
@@ -14,7 +15,7 @@ Renderer::Renderer()
 {
     CreateInstance();
     CreateDebugCallback();
-    CreateSurface(Application::Get()->GetWindow()->GetNativeWindow());
+    CreateSurface(Application::Get().GetWindow()->GetNativeWindow());
 }
 
 Renderer::~Renderer()

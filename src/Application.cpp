@@ -1,6 +1,7 @@
+#include "FastFileViewerPCH.h"
+
 #include "Application.h"
 
-#include "FastFileViewerPCH.h"
 #include "util/Log.h"
 #include "util/Types.h"
 #include "util/Util.h"
@@ -10,12 +11,12 @@
 namespace FFV
 {
 
-UniquePtr<Application> Application::s_Instance = nullptr;
+Application* Application::s_Instance = nullptr;
 
 Application::Application()
 {
-    FFV_ASSERT(s_Instance, "Application already exists!", return);
-    s_Instance.reset(this);
+    FFV_ASSERT(!s_Instance, "Application already exists!", return);
+    s_Instance = this;
 
     Log::Init();
 
@@ -35,7 +36,7 @@ Application::Application()
 
 Application::~Application()
 {
-    glfwTerminate();
+    // glfwTerminate();
 }
 
 void Application::Run()
