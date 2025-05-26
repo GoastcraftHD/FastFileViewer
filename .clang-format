@@ -49,6 +49,10 @@ EmptyLineAfterAccessModifier: Never
 EmptyLineBeforeAccessModifier: Always
 FixNamespaceComments: true
 IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: pch.h
+    Priority: -1000
+    CaseSensitive: false
 IndentAccessModifiers: false
 InsertBraces: true
 InsertNewlineAtEOF: true
