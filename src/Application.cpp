@@ -36,7 +36,7 @@ Application::Application()
 
 Application::~Application()
 {
-    // glfwTerminate();
+    glfwTerminate();
 }
 
 void Application::Run()

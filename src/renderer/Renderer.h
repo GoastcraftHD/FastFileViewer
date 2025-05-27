@@ -1,6 +1,8 @@
 #pragma once
 
-#include "GLFW/glfw3.h"
+struct GLFWwindow;
+
+#include "renderer/PhysicalDevice.h"
 
 #include <vulkan/vulkan.h>
 
@@ -20,6 +22,8 @@ private:
 private:
     VkInstance m_Instance = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT m_DebugMessenger = VK_NULL_HANDLE;
-    VkSurfaceKHR m_Surface;
+    VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
+    PhysicalDevices m_PhysicalDevices;
+    U32 m_QueueFamily = 0;
 };
 } // namespace FFV

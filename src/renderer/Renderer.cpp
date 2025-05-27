@@ -16,13 +16,15 @@ Renderer::Renderer()
     CreateInstance();
     CreateDebugCallback();
     CreateSurface(Application::Get().GetWindow()->GetNativeWindow());
+    m_PhysicalDevices = PhysicalDevices(m_Instance, m_Surface);
+    m_QueueFamily = m_PhysicalDevices.SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
 }
 
 Renderer::~Renderer()
 {
     PFN_vkDestroySurfaceKHR vkDestroySurface = reinterpret_cast<PFN_vkDestroySurfaceKHR>(
         vkGetInstanceProcAddr(m_Instance, "vkDestroySurfaceKHR"));
-    FFV_ASSERT(vkDestroySurface, "Cannot fing address of vkDestroySurface", ;);
+    FFV_ASSERT(vkDestroySurface, "Cannot find address of vkDestroySurface", ;);
     vkDestroySurface(m_Instance, m_Surface, VK_NULL_HANDLE);
 
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger =

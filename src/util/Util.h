@@ -2,6 +2,7 @@
 
 #include "util/Assert.h"
 
+#include <expected>
 #include <vulkan/vk_enum_string_helper.h>
 
 /*
@@ -16,3 +17,9 @@
         ss << "Error while processng vulkan code (" << string_VkResult(result) << ")"; \
         FFV_ASSERT(result == VK_SUCCESS, ss.str(), exit(1));                           \
     }
+
+#define DELETE_MOVE_COPY(type) \
+    DELETE_MOVE(type);         \
+    DELETE_COPY(type)
+#define DELETE_MOVE(type) type(type&&) = delete
+#define DELETE_COPY(type) type(const type&) = delete
