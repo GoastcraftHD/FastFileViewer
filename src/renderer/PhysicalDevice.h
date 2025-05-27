@@ -1,5 +1,10 @@
 #pragma once
 
+#include "util/Types.h"
+
+#include <vector>
+#include <vulkan/vulkan.h>
+
 namespace FFV
 {
 struct PhysicalDevice

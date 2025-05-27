@@ -27,23 +27,6 @@
                 execute;                                                                       \
             }                                                                                  \
         }
-#elif defined(FFV_DEBUG_OPT)
-    /*
-     * If you want to just execute and not print a message you can just use empty "" e.g.
-     * FFV_ASSERT(false, "", return)
-     * @param check: if false the Assert gets triggerd
-     * @param msg: print a debug message
-     * @param execute: gets executed after the message has been printed
-     */
-    #define FFV_ASSERT(check, msg, execute)                                                    \
-        {                                                                                      \
-            if (!(check))                                                                      \
-            {                                                                                  \
-                FFV_ERROR("Assertion failed at {0}:{1}\n                {2}",                  \
-                          std::filesystem::path(__FILE__).filename().string(), __LINE__, msg); \
-                execute;                                                                       \
-            }                                                                                  \
-        }
 #else
     /*
      * When execute is empty nothing happens.

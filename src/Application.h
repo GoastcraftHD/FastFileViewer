@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "renderer/Renderer.h"
 #include "util/Types.h"
+#include "util/Util.h"
 
 namespace FFV
 {

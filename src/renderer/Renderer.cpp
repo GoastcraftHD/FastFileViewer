@@ -103,9 +103,9 @@ DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessa
 
 #define VULKAN_DEBUG_MESSAGE         \
     "Vulkan debug callback:\n"       \
-    "                Type: {0}\n"    \
-    "                Objects: {1}\n" \
-    "                Message: {2}"
+    "                  Type: {0}\n"  \
+    "                  Objects: {1}" \
+    "                  Message: {2}"
 
     std::stringstream ss;
     for (U32 i = 0; i < callbackData->objectCount; i++)

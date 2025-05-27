@@ -4,6 +4,7 @@ struct GLFWwindow;
 
 #include "Window.h"
 #include "renderer/PhysicalDevice.h"
+#include "util/Types.h"
 
 namespace FFV
 {
@@ -17,6 +18,7 @@ private:
     void CreateInstance();
     void CreateDebugCallback();
     void CreateSurface(GLFWwindow* window);
+    void CreateDevice();
 
 private:
     SharedPtr<Window> m_Window;
