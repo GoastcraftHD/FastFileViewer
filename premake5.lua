@@ -55,10 +55,6 @@ defines({
 	"GLFW_INCLUDE_VULKAN",
 })
 
-filter("files:external/spdlog/**.h")
-disablewarnings("warning")
-linkoptions({ "-IGNORE:4221" })
-
 -- Linux
 
 filter("system:linux")
