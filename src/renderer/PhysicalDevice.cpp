@@ -2,6 +2,8 @@
 
 #include "PhysicalDevice.h"
 
+#include "vulkan/vulkan_core.h"
+
 namespace FFV
 {
 PhysicalDevices::PhysicalDevices(const VkInstance& instance, const VkSurfaceKHR& surface)
@@ -144,6 +146,9 @@ PhysicalDevices::PhysicalDevices(const VkInstance& instance, const VkSurfaceKHR&
                               << "\n";
         }
 
+        vkGetPhysicalDeviceFeatures(m_PhysicalDevices[i].PhysicalDevice,
+                                    &m_PhysicalDevices[i].Features);
+
         FFV_TRACE("Device Index: {0}\n"
                   "                Device name: {1}\n"
                   "                API version: {2}.{3}.{4}.{5}\n"
@@ -192,7 +197,7 @@ U32 PhysicalDevices::SelectDevice(VkQueueFlags requiredQueueType, bool supportsP
 }
 const PhysicalDevice& PhysicalDevices::GetSelectedPhysicalDevice() const
 {
-    FFV_ASSERT(m_SelectedDeviceIndex > 0 && m_SelectedDeviceIndex < m_PhysicalDevices.size(),
+    FFV_ASSERT(m_SelectedDeviceIndex >= 0 && m_SelectedDeviceIndex < m_PhysicalDevices.size(),
                "Invalid device index!",
                ;);
     return m_PhysicalDevices[m_SelectedDeviceIndex];

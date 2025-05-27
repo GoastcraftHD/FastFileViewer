@@ -26,6 +26,7 @@ private:
     VkDebugUtilsMessengerEXT m_DebugMessenger = VK_NULL_HANDLE;
     VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
     PhysicalDevices m_PhysicalDevices;
+    VkDevice m_Device;
     U32 m_QueueFamily = 0;
 };
 } // namespace FFV

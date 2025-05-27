@@ -2,10 +2,10 @@
 
 #include "Renderer.h"
 
-#include "Application.h"
 #include "GLFW/glfw3.h"
 #include "util/Log.h"
 #include "util/Util.h"
+#include "vulkan/vulkan_core.h"
 
 namespace FFV
 {
@@ -18,10 +18,13 @@ Renderer::Renderer(SharedPtr<Window> window) : m_Window(window)
     CreateSurface(m_Window->GetNativeWindow());
     m_PhysicalDevices = PhysicalDevices(m_Instance, m_Surface);
     m_QueueFamily = m_PhysicalDevices.SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
+    CreateDevice();
 }
 
 Renderer::~Renderer()
 {
+    vkDestroyDevice(m_Device, VK_NULL_HANDLE);
+
     PFN_vkDestroySurfaceKHR vkDestroySurface = reinterpret_cast<PFN_vkDestroySurfaceKHR>(
         vkGetInstanceProcAddr(m_Instance, "vkDestroySurfaceKHR"));
     FFV_ASSERT(vkDestroySurface, "Cannot find address of vkDestroySurface", ;);
@@ -164,5 +167,41 @@ void Renderer::CreateSurface(GLFWwindow* window)
 {
     FFV_CHECK_VK_RESULT(glfwCreateWindowSurface(m_Instance, window, nullptr, &m_Surface));
     FFV_TRACE("Created GLFW window surface!");
+}
+
+void Renderer::CreateDevice()
+{
+    float queuePriorities[] = { 1.0f };
+
+    VkDeviceQueueCreateInfo queueCreateInfo = { .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                                                .queueFamilyIndex = m_QueueFamily,
+                                                .queueCount = 1,
+                                                .pQueuePriorities = &queuePriorities[0] };
+
+    std::vector<const char*> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                                            VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME };
+
+    FFV_ASSERT(m_PhysicalDevices.GetSelectedPhysicalDevice().Features.geometryShader != VK_FALSE,
+               "Device does not support Geometry Shaders!", exit(1));
+    FFV_ASSERT(m_PhysicalDevices.GetSelectedPhysicalDevice().Features.tessellationShader !=
+                   VK_FALSE,
+               "Device does not support Tessellation Shaders!", exit(1));
+
+    VkPhysicalDeviceFeatures deviceFeatures = { 0 };
+    deviceFeatures.geometryShader = VK_TRUE;
+    deviceFeatures.tessellationShader = VK_TRUE;
+
+    VkDeviceCreateInfo deviceCreateInfo = { .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+                                            .queueCreateInfoCount = 1,
+                                            .pQueueCreateInfos = &queueCreateInfo,
+                                            .enabledExtensionCount =
+                                                static_cast<U32>(extensions.size()),
+                                            .ppEnabledExtensionNames = extensions.data(),
+                                            .pEnabledFeatures = &deviceFeatures };
+
+    FFV_CHECK_VK_RESULT(vkCreateDevice(m_PhysicalDevices.GetSelectedPhysicalDevice().PhysicalDevice,
+                                       &deviceCreateInfo, VK_NULL_HANDLE, &m_Device));
+
+    FFV_TRACE("Created vulkan device!");
 }
 } // namespace FFV

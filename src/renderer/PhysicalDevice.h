@@ -1,6 +1,7 @@
 #pragma once
 
 #include "util/Types.h"
+#include "vulkan/vulkan_core.h"
 
 #include <vector>
 #include <vulkan/vulkan.h>
@@ -17,6 +18,7 @@ struct PhysicalDevice
     VkSurfaceCapabilitiesKHR SurfaceCapabilities;
     VkPhysicalDeviceMemoryProperties MemoryProperties;
     std::vector<VkPresentModeKHR> PresentModes;
+    VkPhysicalDeviceFeatures Features;
 };
 
 class PhysicalDevices
