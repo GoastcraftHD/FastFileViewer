@@ -2,16 +2,15 @@
 
 struct GLFWwindow;
 
+#include "Window.h"
 #include "renderer/PhysicalDevice.h"
-
-#include <vulkan/vulkan.h>
 
 namespace FFV
 {
 class Renderer
 {
 public:
-    Renderer();
+    Renderer(SharedPtr<Window> window);
     ~Renderer();
 
 private:
@@ -20,6 +19,7 @@ private:
     void CreateSurface(GLFWwindow* window);
 
 private:
+    SharedPtr<Window> m_Window;
     VkInstance m_Instance = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT m_DebugMessenger = VK_NULL_HANDLE;
     VkSurfaceKHR m_Surface = VK_NULL_HANDLE;

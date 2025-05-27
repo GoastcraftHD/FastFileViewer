@@ -25,19 +25,11 @@ Application::Application()
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    m_Window = MakeShared<Window>();
-
-    U32 extensionCount = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-    FFV_LOG("{0} extensions supported!", extensionCount);
-
-    m_Renderer = MakeShared<Renderer>();
+    m_Window = MakeShared<Window>("Fast file viewer", 800, 600);
+    m_Renderer = MakeShared<Renderer>(m_Window);
 }
 
-Application::~Application()
-{
-    glfwTerminate();
-}
+Application::~Application() { glfwTerminate(); }
 
 void Application::Run()
 {

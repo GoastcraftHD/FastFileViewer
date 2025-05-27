@@ -1,7 +1,9 @@
 #pragma once
 
 #define FMT_UNICODE 0
+#pragma warning(push, 0)
 #include <spdlog/spdlog.h>
+#pragma warning(pop)
 
 namespace FFV
 {
@@ -14,10 +16,7 @@ public:
      */
     static void Init();
 
-    static std::shared_ptr<spdlog::logger>& GetLogger()
-    {
-        return s_Logger;
-    }
+    static std::shared_ptr<spdlog::logger>& GetLogger() { return s_Logger; }
 
 private:
     static std::shared_ptr<spdlog::logger> s_Logger;

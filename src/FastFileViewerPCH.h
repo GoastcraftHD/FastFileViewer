@@ -16,3 +16,10 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#pragma warning(push, 0)
+#include <vulkan/vulkan.h>
+#pragma warning(pop)
+
+#if defined(FFV_WINDOWS)
+    #include <Windows.h>
+#endif

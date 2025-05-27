@@ -177,8 +177,8 @@ U32 PhysicalDevices::SelectDevice(VkQueueFlags requiredQueueType, bool supportsP
                 m_PhysicalDevices[i].QueueFamiliyProperties[j];
 
             if ((queueFamilyProperty.queueFlags & requiredQueueType) &&
-                (static_cast<bool>(m_PhysicalDevices[i].QueueSupportsPresent[j] ==
-                                   supportsPresent)))
+                (static_cast<bool>(m_PhysicalDevices[i].QueueSupportsPresent[j]) ==
+                 supportsPresent))
             {
                 m_SelectedDeviceIndex = i;
                 FFV_LOG("Using GFX device {0} and queue family {1}", i, j);
@@ -193,7 +193,8 @@ U32 PhysicalDevices::SelectDevice(VkQueueFlags requiredQueueType, bool supportsP
 const PhysicalDevice& PhysicalDevices::GetSelectedPhysicalDevice() const
 {
     FFV_ASSERT(m_SelectedDeviceIndex > 0 && m_SelectedDeviceIndex < m_PhysicalDevices.size(),
-               "Invalid device index!", return PhysicalDevice{});
+               "Invalid device index!",
+               ;);
     return m_PhysicalDevices[m_SelectedDeviceIndex];
 }
 } // namespace FFV

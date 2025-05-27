@@ -6,7 +6,6 @@ startproject("FastFileViewer")
 
 configurations({
 	"Debug",
-	"DebugOpt", -- Same as Release but all asserts are still activated
 	"Release",
 })
 
@@ -60,6 +59,8 @@ filter("files:external/spdlog/**.h")
 disablewarnings("warning")
 linkoptions({ "-IGNORE:4221" })
 
+-- Linux
+
 filter("system:linux")
 defines("FFV_LINUX")
 toolset("clang")
@@ -75,30 +76,30 @@ buildoptions({
 	"-Werror",
 })
 
+-- Windows
+
 filter("system:windows")
 defines("FFV_WINDOWS")
 links({
 	"vulkan-1",
 })
 buildoptions({
-	"/Wall",
+	"/W4",
 	"/MP",
 })
 
 filter({ "system:windows", "configurations:Release" })
+kind("WindowedApp")
 buildoptions({
 	"/WX",
 })
+
+-- Configurations
 
 filter("configurations:Debug")
 defines("FFV_DEBUG")
 runtime("Debug")
 symbols("on")
-
-filter("configurations:DebugOpt")
-defines("FFV_DEBUG_OPT")
-runtime("Release")
-optimize("on")
 
 filter("configurations:Release")
 defines("FFV_RELEASE")

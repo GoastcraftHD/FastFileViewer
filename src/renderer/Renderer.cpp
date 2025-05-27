@@ -6,16 +6,16 @@
 #include "GLFW/glfw3.h"
 #include "util/Log.h"
 #include "util/Util.h"
-#include "vulkan/vk_platform.h"
-#include "vulkan/vulkan_core.h"
 
 namespace FFV
 {
-Renderer::Renderer()
+Renderer::Renderer(SharedPtr<Window> window) : m_Window(window)
 {
     CreateInstance();
+#if defined(FFV_DEBUG)
     CreateDebugCallback();
-    CreateSurface(Application::Get().GetWindow()->GetNativeWindow());
+#endif
+    CreateSurface(m_Window->GetNativeWindow());
     m_PhysicalDevices = PhysicalDevices(m_Instance, m_Surface);
     m_QueueFamily = m_PhysicalDevices.SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
 }
@@ -27,26 +27,37 @@ Renderer::~Renderer()
     FFV_ASSERT(vkDestroySurface, "Cannot find address of vkDestroySurface", ;);
     vkDestroySurface(m_Instance, m_Surface, VK_NULL_HANDLE);
 
+#if defined(FFV_DEBUG)
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger =
         reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
             vkGetInstanceProcAddr(m_Instance, "vkDestroyDebugUtilsMessengerEXT"));
     FFV_ASSERT(vkDestroyDebugUtilsMessenger, "Cannot find address of vkDestroyDebugUtilsMessenger",
                ;);
     vkDestroyDebugUtilsMessenger(m_Instance, m_DebugMessenger, VK_NULL_HANDLE);
+#endif
+
     vkDestroyInstance(m_Instance, VK_NULL_HANDLE);
 }
 
 void Renderer::CreateInstance()
 {
-    std::array<const char*, 1> layers = { "VK_LAYER_KHRONOS_validation" };
-    std::array<const char*, 4> extensions = { VK_KHR_SURFACE_EXTENSION_NAME,
-#if defined(FFV_LINUX)
-                                              "VK_KHR_xcb_surface",
-#elif defined(FFV_WINDOWS)
-                                              "VK_KHR_win32_surface",
+    std::vector<const char*> layers = {
+#if defined(FFV_DEBUG)
+        "VK_LAYER_KHRONOS_validation"
 #endif
-                                              VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-                                              VK_EXT_DEBUG_REPORT_EXTENSION_NAME };
+    };
+
+    std::vector<const char*> extensions = { VK_KHR_SURFACE_EXTENSION_NAME,
+#if defined(FFV_LINUX)
+                                            "VK_KHR_xcb_surface",
+#elif defined(FFV_WINDOWS)
+                                            "VK_KHR_win32_surface",
+#endif
+#if defined(FFV_DEBUG)
+                                            VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+                                            VK_EXT_DEBUG_REPORT_EXTENSION_NAME
+#endif
+    };
 
     const VkApplicationInfo appInfo = { .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
                                         .pApplicationName = "Fast File Viewer",
@@ -69,7 +80,7 @@ void Renderer::CreateInstance()
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
-              const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData)
+              const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void*)
 {
     std::string typeStr = "";
     switch (type)
