@@ -13,6 +13,8 @@ public:
     Window(std::string title, U32 width, U32 height);
     ~Window();
 
+    DELETE_MOVE_COPY(Window);
+
     GLFWwindow* GetNativeWindow() { return m_Window; }
 
 private:

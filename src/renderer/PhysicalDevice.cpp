@@ -22,7 +22,7 @@ PhysicalDevices::PhysicalDevices(const VkInstance& instance, const VkSurfaceKHR&
 
     for (U32 i = 0; i < numDevices; i++)
     {
-        VkPhysicalDevice device = devices[i];
+        const VkPhysicalDevice device = devices[i];
         m_PhysicalDevices[i].PhysicalDevice = device;
 
         vkGetPhysicalDeviceProperties(device, &m_PhysicalDevices[i].DeviceProperties);

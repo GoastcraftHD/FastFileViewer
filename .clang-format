@@ -72,7 +72,7 @@ SpacesInLineCommentPrefix:
   Minimum: 1
 SpacesInSquareBrackets: false
 PointerAlignment: Left
-ColumnLimit: 100
+ColumnLimit: 125
 AlignArrayOfStructures: Left
 AlignAfterOpenBracket: Align
 PPIndentWidth: 4
