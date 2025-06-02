@@ -1,15 +1,20 @@
 #pragma once
 
+#include "util/Types.h"
+#include "util/Util.h"
+
+#include <vulkan/vulkan.h>
+
 namespace FFV
 {
 class Queue
 {
 public:
-    Queue() {}
+    Queue() = default;
     Queue(VkDevice device, VkSwapchainKHR swapchain, U32 queueFamily, U32 queueIndex);
     ~Queue();
 
-    DELETE_COPY(Queue);
+    FFV_DELETE_COPY(Queue);
 
     U32 AquireNextImage();
     void Submit(VkCommandBuffer commandBuffer);

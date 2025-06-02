@@ -17,8 +17,8 @@
         FFV_ASSERT(_result == VK_SUCCESS, _ss.str(), exit(1));                            \
     }
 
-#define DELETE_MOVE_COPY(type) \
-    DELETE_MOVE(type);         \
-    DELETE_COPY(type)
-#define DELETE_MOVE(type) type(type&&) = delete
-#define DELETE_COPY(type) type(const type&) = delete
+#define FFV_DELETE_MOVE_COPY(type) \
+    FFV_DELETE_MOVE(type);         \
+    FFV_DELETE_COPY(type)
+#define FFV_DELETE_MOVE(type) type(type&&) = delete
+#define FFV_DELETE_COPY(type) type(const type&) = delete

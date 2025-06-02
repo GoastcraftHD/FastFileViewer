@@ -1,7 +1,7 @@
 #pragma once
 
 #include "util/Types.h"
-#include "vulkan/vulkan_core.h"
+#include "util/Util.h"
 
 #include <vector>
 #include <vulkan/vulkan.h>
@@ -24,15 +24,17 @@ struct PhysicalDevice
 class PhysicalDevices
 {
 public:
-    PhysicalDevices() {}
+    PhysicalDevices() = default;
     PhysicalDevices(const VkInstance& instance, const VkSurfaceKHR& surface);
     ~PhysicalDevices();
+
+    FFV_DELETE_COPY(PhysicalDevices);
 
     U32 SelectDevice(VkQueueFlags requiredQueueType, bool supportsPresent);
     const PhysicalDevice& GetSelectedPhysicalDevice() const;
 
 private:
     std::vector<PhysicalDevice> m_PhysicalDevices;
-    int m_SelectedDeviceIndex = -1;
+    I32 m_SelectedDeviceIndex = -1;
 };
 } // namespace FFV

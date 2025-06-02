@@ -1,6 +1,7 @@
 #pragma once
 
 #include "util/Types.h"
+#include "util/Util.h"
 
 #include <GLFW/glfw3.h>
 #include <string>
@@ -13,7 +14,7 @@ public:
     Window(std::string title, U32 width, U32 height);
     ~Window();
 
-    DELETE_MOVE_COPY(Window);
+    FFV_DELETE_MOVE_COPY(Window);
 
     GLFWwindow* GetNativeWindow() { return m_Window; }
 

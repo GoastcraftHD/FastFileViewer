@@ -13,7 +13,7 @@ public:
     Application();
     ~Application();
 
-    DELETE_MOVE_COPY(Application);
+    FFV_DELETE_MOVE_COPY(Application);
 
     void Run();
 

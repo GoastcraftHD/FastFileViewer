@@ -6,6 +6,7 @@ struct GLFWwindow;
 #include "renderer/PhysicalDevice.h"
 #include "renderer/Queue.h"
 #include "util/Types.h"
+#include "util/Util.h"
 
 namespace FFV
 {
@@ -15,7 +16,7 @@ public:
     Renderer(SharedPtr<Window> window);
     ~Renderer();
 
-    DELETE_MOVE_COPY(Renderer);
+    FFV_DELETE_MOVE_COPY(Renderer);
 
     void RecordVkCommand(VkCommandBuffer commandBuffer, VkCommandBufferUsageFlags usageFlags,
                          std::function<void()>&& lambda);
