@@ -306,18 +306,49 @@ void Renderer::CreateCommandBuffers(U32 count)
 
 void Renderer::RecordCommandBuffers()
 {
-    const VkClearColorValue clearColor = { 1.0f, 0.0f, 0.0f, 0.0f };
+    const VkClearColorValue clearColor = {
+        .float32 = { 1.0f, 0.0f, 0.0f, 0.0f }
+    };
+
     const VkImageSubresourceRange imageSubResourceRange = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1
     };
 
     for (U32 i = 0; i < m_CommandBuffers.size(); i++)
     {
-        RecordVkCommand(m_CommandBuffers[i], 0,
+        VkImageMemoryBarrier presentToClearBarrier = { .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                                                       .srcAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+                                                       .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+                                                       .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                                                       .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                                       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                                                       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                                                       .image = m_Images[i],
+                                                       .subresourceRange = imageSubResourceRange };
+
+        VkImageMemoryBarrier clearToPresentBarrier = { .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                                                       .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+                                                       .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+                                                       .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                                       .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                                                       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                                                       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                                                       .image = m_Images[i],
+                                                       .subresourceRange = imageSubResourceRange };
+
+        RecordVkCommand(m_CommandBuffers[i], VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT,
                         [&]()
                         {
-                            vkCmdClearColorImage(m_CommandBuffers[i], m_Images[i], VK_IMAGE_LAYOUT_GENERAL, &clearColor, 1,
-                                                 &imageSubResourceRange);
+                            vkCmdPipelineBarrier(m_CommandBuffers[i], VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                                 VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, VK_NULL_HANDLE, 0, VK_NULL_HANDLE, 1,
+                                                 &presentToClearBarrier);
+
+                            vkCmdClearColorImage(m_CommandBuffers[i], m_Images[i], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                                 &clearColor, 1, &imageSubResourceRange);
+
+                            vkCmdPipelineBarrier(m_CommandBuffers[i], VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                                 VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, VK_NULL_HANDLE, 0,
+                                                 VK_NULL_HANDLE, 1, &clearToPresentBarrier);
                         });
     }
 
