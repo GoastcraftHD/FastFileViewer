@@ -36,6 +36,7 @@ void Application::Run()
     while (!glfwWindowShouldClose(m_Window->GetNativeWindow()))
     {
         glfwPollEvents();
+        m_Renderer->Update();
     }
 }
 } // namespace FFV

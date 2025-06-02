@@ -23,6 +23,8 @@ Renderer::Renderer(SharedPtr<Window> window) : m_Window(window)
     CreateCommandBufferPool();
     CreateCommandBuffers(static_cast<U32>(m_ImageViews.size()));
     RecordCommandBuffers();
+
+    m_Queue = Queue(m_Device, m_Swapchain, m_QueueFamily, 0);
 }
 
 Renderer::~Renderer()
@@ -65,6 +67,13 @@ void Renderer::RecordVkCommand(VkCommandBuffer commandBuffer, VkCommandBufferUsa
     lambda();
 
     FFV_CHECK_VK_RESULT(vkEndCommandBuffer(commandBuffer));
+}
+
+void Renderer::Update()
+{
+    U32 imageIndex = m_Queue.AquireNextImage();
+    m_Queue.SubmitAsync(m_CommandBuffers[imageIndex]);
+    m_Queue.Present(imageIndex);
 }
 
 void Renderer::CreateInstance()

@@ -4,6 +4,7 @@ struct GLFWwindow;
 
 #include "Window.h"
 #include "renderer/PhysicalDevice.h"
+#include "renderer/Queue.h"
 #include "util/Types.h"
 
 namespace FFV
@@ -18,6 +19,8 @@ public:
 
     void RecordVkCommand(VkCommandBuffer commandBuffer, VkCommandBufferUsageFlags usageFlags,
                          std::function<void()>&& lambda);
+
+    void Update();
 
 private:
     void CreateInstance();
@@ -45,6 +48,7 @@ private:
     VkCommandPool m_CommandBufferPool = VK_NULL_HANDLE;
 
     PhysicalDevices m_PhysicalDevices;
+    Queue m_Queue;
 
     U32 m_QueueFamily = 0;
     std::vector<VkImage> m_Images;
