@@ -4,6 +4,7 @@
 
 #include "GLFW/glfw3.h"
 #include "util/Log.h"
+#include "util/Types.h"
 #include "util/Util.h"
 #include "vulkan/vulkan_core.h"
 
@@ -16,21 +17,23 @@ Renderer::Renderer(SharedPtr<Window> window) : m_Window(window)
     CreateDebugCallback();
 #endif
     CreateSurface(m_Window->GetNativeWindow());
-    m_PhysicalDevices = PhysicalDevices(m_Instance, m_Surface);
-    m_QueueFamily = m_PhysicalDevices.SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
+    m_PhysicalDevices = MakeShared<PhysicalDevices>(m_Instance, m_Surface);
+    m_QueueFamily = m_PhysicalDevices->SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
     CreateDevice();
     CreateSwapchain();
     CreateCommandBufferPool();
     CreateCommandBuffers(static_cast<U32>(m_ImageViews.size()));
     RecordCommandBuffers();
 
-    m_Queue = Queue(m_Device, m_Swapchain, m_QueueFamily, 0);
+    m_Queue = MakeShared<Queue>(m_Device, m_Swapchain, m_QueueFamily, 0);
 }
 
 Renderer::~Renderer()
 {
     vkFreeCommandBuffers(m_Device, m_CommandBufferPool, m_CommandBuffers.size(), m_CommandBuffers.data());
     vkDestroyCommandPool(m_Device, m_CommandBufferPool, VK_NULL_HANDLE);
+
+    m_Queue.reset();
 
     for (U32 i = 0; i < m_ImageViews.size(); i++)
     {
@@ -71,16 +74,16 @@ void Renderer::RecordVkCommand(VkCommandBuffer commandBuffer, VkCommandBufferUsa
 
 void Renderer::Update()
 {
-    U32 imageIndex = m_Queue.AquireNextImage();
-    m_Queue.SubmitAsync(m_CommandBuffers[imageIndex]);
-    m_Queue.Present(imageIndex);
+    U32 imageIndex = m_Queue->AquireNextImage();
+    m_Queue->SubmitAsync(m_CommandBuffers[imageIndex]);
+    m_Queue->Present(imageIndex);
 }
 
 void Renderer::CreateInstance()
 {
     const std::vector<const char*> layers = {
 #if defined(FFV_DEBUG)
-        "VK_LAYER_KHRONOS_validation"
+        "VK_LAYER_KHRONOS_validation" //, "VK_LAYER_LUNARG_api_dump"
 #endif
     };
 
@@ -208,9 +211,9 @@ void Renderer::CreateDevice()
     const std::vector<const char*> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                                                   VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME };
 
-    FFV_ASSERT(m_PhysicalDevices.GetSelectedPhysicalDevice().Features.geometryShader != VK_FALSE,
+    FFV_ASSERT(m_PhysicalDevices->GetSelectedPhysicalDevice().Features.geometryShader != VK_FALSE,
                "Device does not support Geometry Shaders!", exit(1));
-    FFV_ASSERT(m_PhysicalDevices.GetSelectedPhysicalDevice().Features.tessellationShader != VK_FALSE,
+    FFV_ASSERT(m_PhysicalDevices->GetSelectedPhysicalDevice().Features.tessellationShader != VK_FALSE,
                "Device does not support Tessellation Shaders!", exit(1));
 
     VkPhysicalDeviceVulkan13Features vk13Features = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
@@ -222,7 +225,7 @@ void Renderer::CreateDevice()
     VkPhysicalDeviceFeatures2 deviceFeatures = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
                                                  .pNext = &vk11Features };
 
-    vkGetPhysicalDeviceFeatures2(m_PhysicalDevices.GetSelectedPhysicalDevice().PhysicalDevice, &deviceFeatures);
+    vkGetPhysicalDeviceFeatures2(m_PhysicalDevices->GetSelectedPhysicalDevice().PhysicalDevice, &deviceFeatures);
 
     const VkDeviceCreateInfo deviceCreateInfo = { .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                                                   .pNext = &deviceFeatures,
@@ -231,7 +234,7 @@ void Renderer::CreateDevice()
                                                   .enabledExtensionCount = static_cast<U32>(extensions.size()),
                                                   .ppEnabledExtensionNames = extensions.data() };
 
-    FFV_CHECK_VK_RESULT(vkCreateDevice(m_PhysicalDevices.GetSelectedPhysicalDevice().PhysicalDevice, &deviceCreateInfo,
+    FFV_CHECK_VK_RESULT(vkCreateDevice(m_PhysicalDevices->GetSelectedPhysicalDevice().PhysicalDevice, &deviceCreateInfo,
                                        VK_NULL_HANDLE, &m_Device));
 
     FFV_TRACE("Created vulkan device!");
@@ -239,15 +242,15 @@ void Renderer::CreateDevice()
 
 void Renderer::CreateSwapchain()
 {
-    const VkSurfaceCapabilitiesKHR& surfaceCapabilities = m_PhysicalDevices.GetSelectedPhysicalDevice().SurfaceCapabilities;
+    const VkSurfaceCapabilitiesKHR& surfaceCapabilities = m_PhysicalDevices->GetSelectedPhysicalDevice().SurfaceCapabilities;
 
     const U32 numImages = ChooseNumImages(surfaceCapabilities);
 
-    const std::vector<VkPresentModeKHR>& presentModes = m_PhysicalDevices.GetSelectedPhysicalDevice().PresentModes;
+    const std::vector<VkPresentModeKHR>& presentModes = m_PhysicalDevices->GetSelectedPhysicalDevice().PresentModes;
     const VkPresentModeKHR presentMode = ChoosePresentMode(presentModes);
 
     const VkSurfaceFormatKHR surfaceFormat =
-        ChooseSurfaceFormatAndColorSpace(m_PhysicalDevices.GetSelectedPhysicalDevice().SurfaceFormats);
+        ChooseSurfaceFormatAndColorSpace(m_PhysicalDevices->GetSelectedPhysicalDevice().SurfaceFormats);
 
     const VkSwapchainCreateInfoKHR swapchainCreateInfo = { .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
                                                            .surface = m_Surface,

@@ -40,7 +40,6 @@ private:
                                 VkImageViewType viewType, U32 layerCount, U32 mipLevels);
 
 private:
-    SharedPtr<Window> m_Window;
     VkInstance m_Instance = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT m_DebugMessenger = VK_NULL_HANDLE;
     VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
@@ -48,8 +47,9 @@ private:
     VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
     VkCommandPool m_CommandBufferPool = VK_NULL_HANDLE;
 
-    PhysicalDevices m_PhysicalDevices;
-    Queue m_Queue;
+    SharedPtr<Window> m_Window;
+    SharedPtr<PhysicalDevices> m_PhysicalDevices;
+    SharedPtr<Queue> m_Queue;
 
     U32 m_QueueFamily = 0;
     std::vector<VkImage> m_Images;

@@ -2,6 +2,8 @@
 
 #include "Queue.h"
 
+#include "vulkan/vulkan_core.h"
+
 namespace FFV
 {
 
@@ -10,7 +12,7 @@ Queue::Queue(VkDevice device, VkSwapchainKHR swapchain, U32 queueFamily, U32 que
 {
     vkGetDeviceQueue(m_Device, queueFamily, queueIndex, &m_Queue);
     FFV_TRACE("Queue acquired!");
-    CreateSemaphores();
+    CreateSyncObjects();
 }
 
 Queue::~Queue()
@@ -30,48 +32,48 @@ U32 Queue::AquireNextImage()
 
 void Queue::Submit(VkCommandBuffer commandBuffer)
 {
-    VkSubmitInfo submitInfo = { .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                                .commandBufferCount = 1,
-                                .pCommandBuffers = &commandBuffer };
+    const VkSubmitInfo submitInfo = { .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                                      .commandBufferCount = 1,
+                                      .pCommandBuffers = &commandBuffer };
 
     FFV_CHECK_VK_RESULT(vkQueueSubmit(m_Queue, 1, &submitInfo, VK_NULL_HANDLE));
 }
 
 void Queue::SubmitAsync(VkCommandBuffer commandBuffer)
 {
-    VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    const VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-    VkSubmitInfo submitInfo = { .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                                .waitSemaphoreCount = 1,
-                                .pWaitSemaphores = &m_PresentCompleteSemaphore,
-                                .pWaitDstStageMask = &waitFlags,
-                                .commandBufferCount = 1,
-                                .pCommandBuffers = &commandBuffer,
-                                .signalSemaphoreCount = 1,
-                                .pSignalSemaphores = &m_RenderCompleteSemaphore };
+    const VkSubmitInfo submitInfo = { .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                                      .waitSemaphoreCount = 1,
+                                      .pWaitSemaphores = &m_PresentCompleteSemaphore,
+                                      .pWaitDstStageMask = &waitFlags,
+                                      .commandBufferCount = 1,
+                                      .pCommandBuffers = &commandBuffer,
+                                      .signalSemaphoreCount = 1,
+                                      .pSignalSemaphores = &m_RenderCompleteSemaphore };
 
     FFV_CHECK_VK_RESULT(vkQueueSubmit(m_Queue, 1, &submitInfo, VK_NULL_HANDLE));
 }
 
 void Queue::Present(U32 imageIndex)
 {
-    VkPresentInfoKHR presentInfo = { .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                                     .waitSemaphoreCount = 1,
-                                     .pWaitSemaphores = &m_RenderCompleteSemaphore,
-                                     .swapchainCount = 1,
-                                     .pSwapchains = &m_Swapchain,
-                                     .pImageIndices = &imageIndex };
+    const VkPresentInfoKHR presentInfo = { .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                                           .waitSemaphoreCount = 1,
+                                           .pWaitSemaphores = &m_RenderCompleteSemaphore,
+                                           .swapchainCount = 1,
+                                           .pSwapchains = &m_Swapchain,
+                                           .pImageIndices = &imageIndex };
 
     FFV_CHECK_VK_RESULT(vkQueuePresentKHR(m_Queue, &presentInfo));
+    WaitIdle();
 }
 
 void Queue::WaitIdle() { vkQueueWaitIdle(m_Queue); }
 
-void Queue::CreateSemaphores()
+void Queue::CreateSyncObjects()
 {
-    VkSemaphoreCreateInfo semaphoreCreateInfo = { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+    const VkSemaphoreCreateInfo semaphoreCreateInfo = { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
     FFV_CHECK_VK_RESULT(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, VK_NULL_HANDLE, &m_RenderCompleteSemaphore));
     FFV_CHECK_VK_RESULT(vkCreateSemaphore(m_Device, &semaphoreCreateInfo, VK_NULL_HANDLE, &m_PresentCompleteSemaphore));
 }
-
 } // namespace FFV
