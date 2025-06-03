@@ -213,16 +213,23 @@ void Renderer::CreateDevice()
     FFV_ASSERT(m_PhysicalDevices.GetSelectedPhysicalDevice().Features.tessellationShader != VK_FALSE,
                "Device does not support Tessellation Shaders!", exit(1));
 
-    VkPhysicalDeviceFeatures deviceFeatures = { 0 };
-    deviceFeatures.geometryShader = VK_TRUE;
-    deviceFeatures.tessellationShader = VK_TRUE;
+    VkPhysicalDeviceVulkan13Features vk13Features = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
+    VkPhysicalDeviceVulkan12Features vk12Features = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+                                                      .pNext = &vk13Features };
+    VkPhysicalDeviceVulkan11Features vk11Features = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
+                                                      .pNext = &vk12Features };
+
+    VkPhysicalDeviceFeatures2 deviceFeatures = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+                                                 .pNext = &vk11Features };
+
+    vkGetPhysicalDeviceFeatures2(m_PhysicalDevices.GetSelectedPhysicalDevice().PhysicalDevice, &deviceFeatures);
 
     const VkDeviceCreateInfo deviceCreateInfo = { .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+                                                  .pNext = &deviceFeatures,
                                                   .queueCreateInfoCount = 1,
                                                   .pQueueCreateInfos = &queueCreateInfo,
                                                   .enabledExtensionCount = static_cast<U32>(extensions.size()),
-                                                  .ppEnabledExtensionNames = extensions.data(),
-                                                  .pEnabledFeatures = &deviceFeatures };
+                                                  .ppEnabledExtensionNames = extensions.data() };
 
     FFV_CHECK_VK_RESULT(vkCreateDevice(m_PhysicalDevices.GetSelectedPhysicalDevice().PhysicalDevice, &deviceCreateInfo,
                                        VK_NULL_HANDLE, &m_Device));
