@@ -1,7 +1,12 @@
 #pragma once
 
 #include "util/Assert.h"
+#include "util/Types.h"
 
+#include <expected>
+#include <fstream>
+#include <string>
+#include <vector>
 #include <vulkan/vk_enum_string_helper.h>
 
 /*
@@ -22,3 +27,22 @@
     FFV_DELETE_COPY(type)
 #define FFV_DELETE_MOVE(type) type(type&&) = delete
 #define FFV_DELETE_COPY(type) type(const type&) = delete
+
+namespace FFV
+{
+
+std::vector<char> ReadBinaryFile(std::string path)
+{
+    std::vector<char> buffer;
+    std::ifstream file(path, std::ios::ate | std::ios::binary);
+    FFV_ASSERT(file.is_open(), "Failed to open file", return buffer);
+
+    U64 fileSize = static_cast<U64>(file.tellg());
+    buffer.resize(fileSize);
+
+    file.seekg(0);
+    file.read(buffer.data(), fileSize);
+
+    return buffer;
+}
+} // namespace FFV
