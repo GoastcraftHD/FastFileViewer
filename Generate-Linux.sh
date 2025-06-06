@@ -22,6 +22,11 @@ InstallPremake ()
         exit 2
     fi
 
+    if [[ ! -x "$(command -v python3)" ]]; then
+        echo "Error: python3 is required!" >&2
+        exit 2
+    fi
+
     # Get Premake
     mkdir external/premake/bin
     cd external/premake/bin
@@ -37,7 +42,7 @@ InstallPremake ()
     tar -xf premake.tar.gz
 
     if [[ $? -ne 0 ]]; then
-        echo "Error: Extraction failed!"
+        echo "Error: Extraction failed!" >&2
         exit 2
     fi
 
@@ -46,7 +51,7 @@ InstallPremake ()
     echo "${PREMAKE_HASH} premake5" | sha256sum -c
 
     if [[ $? -ne 0 ]]; then
-        echo "Error: Hash verification failed!"
+        echo "Error: Hash verification failed!" >&2
         rm premake5
         exit 2
     fi
@@ -67,10 +72,11 @@ fi
 
 # Check if premake is installed
 if [[ ! -x "$(command -v external/premake/bin/premake5)" ]]; then
-    echo "Installing premake"
+    echo "Installing premake" >&2
     InstallPremake
 fi
 
 git submodule update --init --recursive
 external/premake/bin/premake5 gmake
 external/premake/bin/premake5 --config=Debug ecc
+python3 scripts/CompileShaders.py

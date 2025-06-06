@@ -10,10 +10,16 @@ goto start
 if not exist "external/premake/bin" mkdir "external/premake/bin"
 
 powershell -NoProfile -NonInteractive -Command "Invoke-WebRequest %PREMAKE_URL% -OutFile external/premake/bin/premake.zip"
+
+IF ERRORLEVEL 1 (
+    echo "Error: Downloading premake failed!"
+    exit 2
+)
+
 powershell -NoProfile -NonInteractive -Command "Invoke-WebRequest %PREMAKE_URL% -OutFile external/premake/bin/LICENSE.txt"
 
 IF ERRORLEVEL 1 (
-    echo "Error: Download failed!"
+    echo "Error: Downloading premake license failed!"
     exit 2
 )
 
@@ -52,4 +58,5 @@ goto runpremake
 :runpremake
 git submodule update --init --recursive
 external\premake\bin\premake5.exe vs2022
+python scripts\CompileShaders.py
 PAUSE
