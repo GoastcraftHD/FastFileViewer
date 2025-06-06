@@ -67,6 +67,10 @@ links({
 	"vulkan",
 })
 
+prebuildcommands({
+	"python3 scripts/CompileShaders.py",
+})
+
 filter({ "system:linux", "configurations:Release" })
 buildoptions({
 	"-Werror",
@@ -82,6 +86,10 @@ links({
 buildoptions({
 	"/W4",
 	"/MP",
+})
+
+prebuildcommands({
+	"python scripts/CompileShaders.py",
 })
 
 filter({ "system:windows", "configurations:Release" })
