@@ -94,7 +94,7 @@ for root, dirs, files in os.walk("assets/shaders"):
                 compiler_path += ".exe"
 
             res = subprocess.call(
-                "%s %s -profile spirv_1_4 -target spirv -o %s -entry %s -stage %s"
+                "%s %s -profile spirv_1_6 -target spirv -o %s -entry %s -stage %s"
                 % (compiler_path, input_file, output_file, entry_point, stage),
                 shell=True,
             )
