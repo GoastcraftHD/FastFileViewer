@@ -16,6 +16,8 @@ public:
 
     FFV_DELETE_MOVE_COPY(Window);
 
+    U32 GetWidth();
+    U32 GetHeight();
     GLFWwindow* GetNativeWindow() { return m_Window; }
 
 private:

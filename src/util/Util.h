@@ -3,7 +3,6 @@
 #include "util/Assert.h"
 #include "util/Types.h"
 
-#include <expected>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -30,19 +29,22 @@
 
 namespace FFV
 {
-
-std::vector<char> ReadBinaryFile(std::string path)
+class Util
 {
-    std::vector<char> buffer;
-    std::ifstream file(path, std::ios::ate | std::ios::binary);
-    FFV_ASSERT(file.is_open(), "Failed to open file", return buffer);
+public:
+    static std::vector<char> ReadBinaryFile(std::string path)
+    {
+        std::vector<char> buffer;
+        std::ifstream file(path, std::ios::ate | std::ios::binary);
+        FFV_ASSERT(file.is_open(), "Failed to open file", return buffer);
 
-    U64 fileSize = static_cast<U64>(file.tellg());
-    buffer.resize(fileSize);
+        U64 fileSize = static_cast<U64>(file.tellg());
+        buffer.resize(fileSize);
 
-    file.seekg(0);
-    file.read(buffer.data(), fileSize);
+        file.seekg(0);
+        file.read(buffer.data(), fileSize);
 
-    return buffer;
-}
+        return buffer;
+    }
+};
 } // namespace FFV

@@ -11,17 +11,18 @@ public:
     /*
      * @param path: path based of assets/shaders e.g.: default.vert.spv
      */
-    Shader(VkDevice device, std::string path);
+    Shader(VkDevice device, const std::string& path);
     ~Shader();
 
-    VkShaderStageFlagBits GetShaderStage() { return m_ShaderStage; }
-    std::string GetShaderStageName() { return m_ShaderStageName; }
+    VkShaderModule GetShaderModule() const { return m_Module; }
+    VkShaderStageFlagBits GetShaderStage() const { return m_ShaderStage; }
+    std::string GetShaderStageName() const { return m_ShaderStageName; }
 
 private:
     /*
      * @param filename: name of the file with extension
      */
-    void GetShaderStageFromName(std::string filename);
+    void GetShaderStageFromName(const std::string& filename);
 
 private:
     VkDevice m_Device = VK_NULL_HANDLE;

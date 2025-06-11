@@ -14,6 +14,8 @@ public:
     Queue(VkDevice device, VkSwapchainKHR swapchain, U32 queueFamily, U32 queueIndex);
     ~Queue();
 
+    FFV_DELETE_MOVE_COPY(Queue);
+
     U32 AquireNextImage();
     void Submit(VkCommandBuffer commandBuffer);
     void SubmitAsync(VkCommandBuffer commandBuffer);
