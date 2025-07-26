@@ -89,6 +89,11 @@ for root, dirs, files in os.walk("assets/shaders"):
                     output_ext = ".tese"
             output_file = output_base_file_name + output_ext + ".spv"
             output_file = output_file.replace(".slang", "")
+
+            if os.environ.get("VULKAN_SDK") == None:
+                print("Could not find VULKAN_SDK in PATH")
+                sys.exit(1)
+
             compiler_path = os.environ.get("VULKAN_SDK") + "/bin/slangc"
             if os.name == "nt":
                 compiler_path += ".exe"
