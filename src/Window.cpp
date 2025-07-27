@@ -6,7 +6,7 @@
 
 namespace FFV
 {
-Window::Window(std::string title, U32 width, U32 height)
+Window::Window(const std::string& title, U32 width, U32 height)
 {
     m_Window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     FFV_ASSERT(m_Window, "Couldn't create window!", ;);

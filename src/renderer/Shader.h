@@ -16,7 +16,7 @@ public:
 
     VkShaderModule GetShaderModule() const { return m_Module; }
     VkShaderStageFlagBits GetShaderStage() const { return m_ShaderStage; }
-    std::string GetShaderStageName() const { return m_ShaderStageName; }
+    const std::string& GetShaderStageName() const { return m_ShaderStageName; }
 
 private:
     /*

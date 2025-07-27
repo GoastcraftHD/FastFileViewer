@@ -86,7 +86,7 @@ void Renderer::CreateInstance()
 #if defined(FFV_LINUX)
                                                   "VK_KHR_xcb_surface",
 #elif defined(FFV_WINDOWS)
-                                            "VK_KHR_win32_surface",
+                                                  "VK_KHR_win32_surface",
 #endif
 #if defined(FFV_DEBUG)
                                                   VK_EXT_DEBUG_UTILS_EXTENSION_NAME, VK_EXT_DEBUG_REPORT_EXTENSION_NAME

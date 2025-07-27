@@ -11,7 +11,7 @@ namespace FFV
 {
 Shader::Shader(VkDevice device, const std::string& path) : m_Device(device)
 {
-    std::string absolutePath = std::filesystem::current_path();
+    std::string absolutePath = std::filesystem::current_path().string();
 
     absolutePath += "/bin/assets/shaders/";
     absolutePath += path;

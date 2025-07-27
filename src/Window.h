@@ -11,7 +11,7 @@ namespace FFV
 class Window
 {
 public:
-    Window(std::string title, U32 width, U32 height);
+    Window(const std::string& title, U32 width, U32 height);
     ~Window();
 
     FFV_DELETE_MOVE_COPY(Window);

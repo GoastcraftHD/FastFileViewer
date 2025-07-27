@@ -10,6 +10,7 @@
 
 /*
  * In Debug mode a Assert is thrown when the result of the funtion is not VK_SUCCESS.
+ *
  * In Release mode the code just gets executed and in case of a failure the program exits.
  * @param func: The vulkan function to check
  */
@@ -32,7 +33,7 @@ namespace FFV
 class Util
 {
 public:
-    static std::vector<char> ReadBinaryFile(std::string path)
+    static std::vector<char> ReadBinaryFile(const std::string& path)
     {
         std::vector<char> buffer;
         std::ifstream file(path, std::ios::ate | std::ios::binary);
