@@ -1,14 +1,14 @@
 #pragma once
 
-#include "renderer/GraphicsPipeline.h"
-struct GLFWwindow;
-
 #include "Window.h"
+#include "renderer/GraphicsPipeline.h"
 #include "renderer/PhysicalDevice.h"
 #include "renderer/Queue.h"
 #include "renderer/Swapchain.h"
 #include "util/Types.h"
 #include "util/Util.h"
+
+#include <GLFW/glfw3.h>
 
 namespace FFV
 {
@@ -28,8 +28,11 @@ private:
     void CreateSurface(GLFWwindow* window);
     void CreateDevice();
     void CreateCommandBufferPool();
+    void CreateVertrexBuffer();
     void CreateCommandBuffers(U32 count);
     void RecordCommandBuffers();
+
+    U32 FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags properties);
 
 private:
     VkInstance m_Instance = VK_NULL_HANDLE;
@@ -46,5 +49,15 @@ private:
 
     U32 m_QueueFamily = 0;
     std::vector<VkCommandBuffer> m_CommandBuffers;
+
+    VkBuffer m_VertexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_VertexBufferMemory = VK_NULL_HANDLE;
+
+    // Tmp
+    const std::vector<GraphicsPipeline::Vertex> m_Vertices = {
+        { { 0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
+        { { 0.5f, 0.5f },  { 0.0f, 1.0f, 0.0f } },
+        { { -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f } }
+    };
 };
 } // namespace FFV

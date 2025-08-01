@@ -33,6 +33,7 @@ Renderer::Renderer(SharedPtr<Window> window) : m_Window(window)
     m_GraphicsPipeline = MakeShared<GraphicsPipeline>(m_Device, shaders);
 
     CreateCommandBufferPool();
+    CreateVertrexBuffer();
     CreateCommandBuffers(static_cast<U32>(m_Swapchain->GetImageViews().size()));
     RecordCommandBuffers();
 
@@ -45,6 +46,9 @@ Renderer::~Renderer()
 
     vkFreeCommandBuffers(m_Device, m_CommandBufferPool, m_CommandBuffers.size(), m_CommandBuffers.data());
     vkDestroyCommandPool(m_Device, m_CommandBufferPool, VK_NULL_HANDLE);
+
+    vkDestroyBuffer(m_Device, m_VertexBuffer, VK_NULL_HANDLE);
+    vkFreeMemory(m_Device, m_VertexBufferMemory, VK_NULL_HANDLE);
 
     m_GraphicsPipeline.reset();
     m_Swapchain.reset();
@@ -78,7 +82,7 @@ void Renderer::CreateInstance()
 {
     const std::vector<const char*> layers = {
 #if defined(FFV_DEBUG)
-        "VK_LAYER_KHRONOS_validation" //, "VK_LAYER_LUNARG_api_dump"
+        "VK_LAYER_KHRONOS_validation", //"VK_LAYER_LUNARG_api_dump"
 #endif
     };
 
@@ -244,6 +248,36 @@ void Renderer::CreateCommandBufferPool()
     FFV_TRACE("Created command pool!");
 }
 
+void Renderer::CreateVertrexBuffer()
+{
+    VkBufferCreateInfo bufferCreateInfo = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+                                            .size = sizeof(m_Vertices[0]) * m_Vertices.size(),
+                                            .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                            .sharingMode = VK_SHARING_MODE_EXCLUSIVE };
+
+    vkCreateBuffer(m_Device, &bufferCreateInfo, VK_NULL_HANDLE, &m_VertexBuffer);
+
+    VkMemoryRequirements memoryRequirements;
+    vkGetBufferMemoryRequirements(m_Device, m_VertexBuffer, &memoryRequirements);
+    VkMemoryAllocateInfo memoryAllocateInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .allocationSize = memoryRequirements.size,
+        .memoryTypeIndex = FindMemoryType(memoryRequirements.memoryTypeBits,
+                                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+    };
+
+    FFV_CHECK_VK_RESULT(vkAllocateMemory(m_Device, &memoryAllocateInfo, VK_NULL_HANDLE, &m_VertexBufferMemory));
+    FFV_CHECK_VK_RESULT(vkBindBufferMemory(m_Device, m_VertexBuffer, m_VertexBufferMemory, 0));
+
+    void* data;
+    FFV_CHECK_VK_RESULT(vkMapMemory(m_Device, m_VertexBufferMemory, 0, memoryAllocateInfo.allocationSize, 0, &data));
+
+    memcpy(data, m_Vertices.data(), memoryAllocateInfo.allocationSize);
+    vkUnmapMemory(m_Device, m_VertexBufferMemory);
+
+    FFV_TRACE("Created vertex buffer with {0} vertices!", m_Vertices.size());
+}
+
 void Renderer::CreateCommandBuffers(U32 count)
 {
     const VkCommandBufferAllocateInfo commandBufferAllocateInfo = { .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -327,6 +361,8 @@ void Renderer::RecordCommandBuffers()
 
         vkCmdSetViewport(m_CommandBuffers[i], 0, 1, &viewport);
         vkCmdSetScissor(m_CommandBuffers[i], 0, 1, &scissorRect);
+        VkDeviceSize offset = 0;
+        vkCmdBindVertexBuffers(m_CommandBuffers[i], 0, 1, &m_VertexBuffer, &offset);
         vkCmdDraw(m_CommandBuffers[i], 3, 1, 0, 0);
 
         vkCmdEndRendering(m_CommandBuffers[i]);
@@ -338,6 +374,22 @@ void Renderer::RecordCommandBuffers()
     }
 
     FFV_TRACE("Command buffers have been recorded!");
+}
+
+U32 Renderer::FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags properties)
+{
+    VkPhysicalDeviceMemoryProperties memoryProperties;
+    vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevices->GetSelectedPhysicalDevice().PhysicalDevice, &memoryProperties);
+
+    for (U32 i = 0; i < memoryProperties.memoryTypeCount; i++)
+    {
+        if ((typeFilter & (1 << i)) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+        {
+            return i;
+        }
+    }
+
+    FFV_ASSERT(false, "Failed to find suitable memory type!", return 0);
 }
 
 } // namespace FFV

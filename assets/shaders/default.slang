@@ -1,30 +1,26 @@
-//struct VertexIn
-//{
-//    float2 position : POSITION;
-//};
+struct VertexIn
+{
+    float2 position;
+    float3 color;
+};
 
 struct VertexOut
 {
     float4 position : SV_POSITION;
+    float3 color;
 };
 
 [shader("vertex")]
-VertexOut vertexMain(uint vertexId : SV_VertexID)
+VertexOut vertexMain(VertexIn input)
 {
-    float2 verts[3] ={
-        float2(-0.7, 0.7),
-        float2(0.7, 0.7),
-        float2(0.0, -0.7)
-    };
-
-    VertexOut vert;
-    //vert.position = float4(vertex.position, 0.0, 1.0);
-    vert.position = float4(verts[vertexId], 0.0, 1.0);
-    return vert;
+    VertexOut output;
+    output.position = float4(input.position, 0.0, 1.0);
+    output.color = input.color;
+    return output;
 }
 
 [shader("fragment")]
-float4 fragmentMain(VertexOut vertex)
+float4 fragmentMain(VertexOut vertex) : SV_TARGET
 {
-    return float4(1.0, 1.0, 0.0, 1.0);
+    return float4(vertex.color, 1.0);
 }
