@@ -10,7 +10,6 @@
 
 namespace FFV
 {
-
 Application* Application::s_Instance = nullptr;
 
 Application::Application()

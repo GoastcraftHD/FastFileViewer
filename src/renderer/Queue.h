@@ -16,11 +16,12 @@ public:
 
     FFV_DELETE_MOVE_COPY(Queue);
 
-    U32 AquireNextImage();
-    void Submit(VkCommandBuffer commandBuffer);
-    void SubmitAsync(VkCommandBuffer commandBuffer);
-    void Present(U32 imageIndex);
-    void WaitIdle();
+    U32 AquireNextImage() const;
+    void Submit(VkCommandBuffer commandBuffer) const;
+    void SubmitAsync(VkCommandBuffer commandBuffer) const;
+    void Present(U32 imageIndex) const;
+    void WaitIdle() const;
+    const VkQueue& GetQueue() const { return m_Queue; }
 
 private:
     void CreateSyncObjects();

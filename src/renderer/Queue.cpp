@@ -21,7 +21,7 @@ Queue::~Queue()
     vkDestroySemaphore(m_Device, m_PresentCompleteSemaphore, VK_NULL_HANDLE);
 }
 
-U32 Queue::AquireNextImage()
+U32 Queue::AquireNextImage() const
 {
     U32 imageIndex = 0;
     FFV_CHECK_VK_RESULT(vkAcquireNextImageKHR(m_Device, m_Swapchain, std::numeric_limits<U64>::max(),
@@ -30,7 +30,7 @@ U32 Queue::AquireNextImage()
     return imageIndex;
 }
 
-void Queue::Submit(VkCommandBuffer commandBuffer)
+void Queue::Submit(VkCommandBuffer commandBuffer) const
 {
     const VkSubmitInfo submitInfo = { .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
                                       .commandBufferCount = 1,
@@ -39,7 +39,7 @@ void Queue::Submit(VkCommandBuffer commandBuffer)
     FFV_CHECK_VK_RESULT(vkQueueSubmit(m_Queue, 1, &submitInfo, VK_NULL_HANDLE));
 }
 
-void Queue::SubmitAsync(VkCommandBuffer commandBuffer)
+void Queue::SubmitAsync(VkCommandBuffer commandBuffer) const
 {
     const VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
@@ -55,7 +55,7 @@ void Queue::SubmitAsync(VkCommandBuffer commandBuffer)
     FFV_CHECK_VK_RESULT(vkQueueSubmit(m_Queue, 1, &submitInfo, VK_NULL_HANDLE));
 }
 
-void Queue::Present(U32 imageIndex)
+void Queue::Present(U32 imageIndex) const
 {
     const VkPresentInfoKHR presentInfo = { .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
                                            .waitSemaphoreCount = 1,
@@ -68,7 +68,7 @@ void Queue::Present(U32 imageIndex)
     WaitIdle();
 }
 
-void Queue::WaitIdle() { vkQueueWaitIdle(m_Queue); }
+void Queue::WaitIdle() const { vkQueueWaitIdle(m_Queue); }
 
 void Queue::CreateSyncObjects()
 {

@@ -28,11 +28,15 @@ private:
     void CreateSurface(GLFWwindow* window);
     void CreateDevice();
     void CreateCommandBufferPool();
-    void CreateVertrexBuffer();
+    void CreateVertexBuffer();
+    void CreateIndexBuffer();
     void CreateCommandBuffers(U32 count);
     void RecordCommandBuffers();
 
-    U32 FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags properties);
+    U32 FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags properties) const;
+    void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags,
+                      VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    void CopyBuffer(VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size);
 
 private:
     VkInstance m_Instance = VK_NULL_HANDLE;
@@ -52,12 +56,17 @@ private:
 
     VkBuffer m_VertexBuffer = VK_NULL_HANDLE;
     VkDeviceMemory m_VertexBufferMemory = VK_NULL_HANDLE;
+    VkBuffer m_IndexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_IndexBufferMemory = VK_NULL_HANDLE;
 
     // Tmp
     const std::vector<GraphicsPipeline::Vertex> m_Vertices = {
-        { { 0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
-        { { 0.5f, 0.5f },  { 0.0f, 1.0f, 0.0f } },
-        { { -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f } }
+        { { -0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
+        { { 0.5f, -0.5f },  { 0.0f, 1.0f, 0.0f } },
+        { { 0.5f, 0.5f },   { 0.0f, 0.0f, 1.0f } },
+        { { -0.5f, 0.5f },  { 1.0f, 1.0f, 1.0f } }
     };
+
+    const std::vector<U32> m_Indices = { 0, 3, 2, 2, 1, 0 };
 };
 } // namespace FFV

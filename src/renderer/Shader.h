@@ -22,7 +22,7 @@ private:
     /*
      * @param filename: name of the file with extension
      */
-    void GetShaderStageFromName(const std::string& filename);
+    void SetShaderStageFromName(const std::string& filename);
 
 private:
     VkDevice m_Device = VK_NULL_HANDLE;

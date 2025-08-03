@@ -24,12 +24,12 @@ Shader::Shader(VkDevice device, const std::string& path) : m_Device(device)
 
     FFV_CHECK_VK_RESULT(vkCreateShaderModule(m_Device, &shaderModuleCreateInfo, VK_NULL_HANDLE, &m_Module));
 
-    GetShaderStageFromName(path);
+    SetShaderStageFromName(path);
 }
 
 Shader::~Shader() { vkDestroyShaderModule(m_Device, m_Module, VK_NULL_HANDLE); }
 
-void Shader::GetShaderStageFromName(const std::string& filename)
+void Shader::SetShaderStageFromName(const std::string& filename)
 {
     if (filename.ends_with("vert.spv"))
     {

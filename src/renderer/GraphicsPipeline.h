@@ -40,7 +40,7 @@ public:
 
     FFV_DELETE_MOVE_COPY(GraphicsPipeline);
 
-    void Bind(VkCommandBuffer commandBuffer);
+    void Bind(VkCommandBuffer commandBuffer) const;
 
 private:
     VkDevice m_Device = VK_NULL_HANDLE;

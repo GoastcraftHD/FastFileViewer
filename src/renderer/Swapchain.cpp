@@ -66,7 +66,7 @@ Swapchain::~Swapchain()
     vkDestroySwapchainKHR(m_Device, m_Swapchain, VK_NULL_HANDLE);
 }
 
-VkSurfaceFormatKHR Swapchain::ChooseSurfaceFormatAndColorSpace(const std::vector<VkSurfaceFormatKHR>& surfaceFormats)
+VkSurfaceFormatKHR Swapchain::ChooseSurfaceFormatAndColorSpace(const std::vector<VkSurfaceFormatKHR>& surfaceFormats) const
 {
     for (const VkSurfaceFormatKHR& format : surfaceFormats)
     {
@@ -81,7 +81,7 @@ VkSurfaceFormatKHR Swapchain::ChooseSurfaceFormatAndColorSpace(const std::vector
     return surfaceFormats[0];
 }
 
-U32 Swapchain::ChooseNumImages(const VkSurfaceCapabilitiesKHR& capabilities)
+U32 Swapchain::ChooseNumImages(const VkSurfaceCapabilitiesKHR& capabilities) const
 {
     U32 requestedNumImages = capabilities.minImageCount + 1;
 
@@ -95,7 +95,7 @@ U32 Swapchain::ChooseNumImages(const VkSurfaceCapabilitiesKHR& capabilities)
     }
 }
 
-VkPresentModeKHR Swapchain::ChoosePresentMode(const std::vector<VkPresentModeKHR>& presentModes)
+VkPresentModeKHR Swapchain::ChoosePresentMode(const std::vector<VkPresentModeKHR>& presentModes) const
 {
     for (const VkPresentModeKHR& presentMode : presentModes)
     {
@@ -109,27 +109,22 @@ VkPresentModeKHR Swapchain::ChoosePresentMode(const std::vector<VkPresentModeKHR
 }
 
 VkImageView Swapchain::CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
-                                       VkImageViewType viewType, U32 layerCount, U32 mipLevels)
+                                       VkImageViewType viewType, U32 layerCount, U32 mipLevels) const
 {
     VkImageViewCreateInfo imageViewCreateInfo = {
-    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-    .image = image,
-    .viewType = viewType,
-    .format = format,
-    .components = {
-        .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-        .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-        .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-        .a = VK_COMPONENT_SWIZZLE_IDENTITY,
-
-    },
-    .subresourceRange = {
-        .aspectMask = aspectFlags,
-        .baseMipLevel = 0,
-        .levelCount = mipLevels,
-        .baseArrayLayer = 0,
-        .layerCount = layerCount
-    }
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image = image,
+        .viewType = viewType,
+        .format = format,
+        .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                       .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                       .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                       .a = VK_COMPONENT_SWIZZLE_IDENTITY },
+        .subresourceRange = { .aspectMask = aspectFlags,
+                       .baseMipLevel = 0,
+                       .levelCount = mipLevels,
+                       .baseArrayLayer = 0,
+                       .layerCount = layerCount }
     };
 
     VkImageView imageView = VK_NULL_HANDLE;

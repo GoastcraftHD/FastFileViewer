@@ -16,14 +16,14 @@ Window::Window(const std::string& title, U32 width, U32 height)
 
 Window::~Window() { glfwDestroyWindow(m_Window); }
 
-U32 Window::GetWidth()
+U32 Window::GetWidth() const
 {
     I32 width;
     glfwGetWindowSize(m_Window, &width, nullptr);
     return static_cast<U32>(width);
 }
 
-U32 Window::GetHeight()
+U32 Window::GetHeight() const
 {
     I32 height;
     glfwGetWindowSize(m_Window, nullptr, &height);

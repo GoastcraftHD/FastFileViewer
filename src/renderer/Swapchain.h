@@ -21,11 +21,11 @@ public:
     VkSwapchainKHR GetSwapchain() const { return m_Swapchain; }
 
 private:
-    VkSurfaceFormatKHR ChooseSurfaceFormatAndColorSpace(const std::vector<VkSurfaceFormatKHR>& surfaceFormats);
-    U32 ChooseNumImages(const VkSurfaceCapabilitiesKHR& capabilities);
-    VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& presentModes);
+    VkSurfaceFormatKHR ChooseSurfaceFormatAndColorSpace(const std::vector<VkSurfaceFormatKHR>& surfaceFormats) const;
+    U32 ChooseNumImages(const VkSurfaceCapabilitiesKHR& capabilities) const;
+    VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& presentModes) const;
     VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
-                                VkImageViewType viewType, U32 layerCount, U32 mipLevels);
+                                VkImageViewType viewType, U32 layerCount, U32 mipLevels) const;
 
 private:
     VkDevice m_Device = VK_NULL_HANDLE;

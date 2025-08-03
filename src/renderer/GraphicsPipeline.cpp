@@ -55,7 +55,7 @@ GraphicsPipeline::GraphicsPipeline(VkDevice device, std::vector<SharedPtr<Shader
     VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .polygonMode = VK_POLYGON_MODE_FILL,
-        .cullMode = VK_CULL_MODE_NONE,
+        .cullMode = VK_CULL_MODE_BACK_BIT,
         .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE
     };
 
@@ -104,7 +104,7 @@ GraphicsPipeline::GraphicsPipeline(VkDevice device, std::vector<SharedPtr<Shader
     FFV_CHECK_VK_RESULT(
         vkCreateGraphicsPipelines(m_Device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, VK_NULL_HANDLE, &m_Pipeline));
 
-    FFV_TRACE("Vulkan graphics pipeline created!");
+    FFV_TRACE("Created vulkan graphics pipeline!");
 }
 
 GraphicsPipeline::~GraphicsPipeline()
@@ -113,7 +113,7 @@ GraphicsPipeline::~GraphicsPipeline()
     vkDestroyPipeline(m_Device, m_Pipeline, VK_NULL_HANDLE);
 }
 
-void GraphicsPipeline::Bind(VkCommandBuffer commandBuffer)
+void GraphicsPipeline::Bind(VkCommandBuffer commandBuffer) const
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
 }
