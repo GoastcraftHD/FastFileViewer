@@ -2,6 +2,7 @@
 
 #include "GraphicsPipeline.h"
 
+#include "renderer/Model.h"
 #include "util/Log.h"
 #include "util/Util.h"
 #include "vulkan/vulkan_core.h"
@@ -24,8 +25,8 @@ GraphicsPipeline::GraphicsPipeline(VkDevice device, std::vector<SharedPtr<Shader
                                              .pName = "main" });
     }
 
-    VkVertexInputBindingDescription bindingDescription = Vertex::GetBindingDescription();
-    auto attributeDescriptions = Vertex::GetAttributeDescriptions();
+    VkVertexInputBindingDescription bindingDescription = Model::Vertex::GetBindingDescription();
+    auto attributeDescriptions = Model::Vertex::GetAttributeDescriptions();
 
     VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,

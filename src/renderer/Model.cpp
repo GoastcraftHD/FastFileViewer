@@ -4,7 +4,7 @@
 
 namespace FFV
 {
-Model::Model(const std::vector<GraphicsPipeline::Vertex>& vertices, const std::vector<U32>& indices, VkDevice device,
+Model::Model(const std::vector<Vertex>& vertices, const std::vector<U32>& indices, VkDevice device,
              SharedPtr<PhysicalDevices> physicalDevice, SharedPtr<Queue> queue, VkCommandPool commandBufferPool)
     : m_Device(device), m_PhysicalDevices(physicalDevice), m_Queue(queue), m_CommandBufferPool(commandBufferPool)
 {
@@ -24,7 +24,7 @@ Model::~Model()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Model::CreateVertexBuffer(const std::vector<GraphicsPipeline::Vertex>& vertices)
+void Model::CreateVertexBuffer(const std::vector<Vertex>& vertices)
 {
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
