@@ -33,11 +33,14 @@ Renderer::Renderer(SharedPtr<Window> window) : m_Window(window)
     m_GraphicsPipeline = MakeShared<GraphicsPipeline>(m_Device, shaders);
 
     CreateCommandBufferPool();
-    CreateVertexBuffer();
-    CreateIndexBuffer();
+
+    m_Model = MakeShared<Model>(m_Vertices, m_Indices, m_Device, m_PhysicalDevices, m_Queue, m_CommandBufferPool);
+
     CreateCommandBuffers(static_cast<U32>(m_Swapchain->GetImageViews().size()));
     RecordCommandBuffers();
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Renderer::~Renderer()
 {
@@ -46,10 +49,7 @@ Renderer::~Renderer()
     vkFreeCommandBuffers(m_Device, m_CommandBufferPool, static_cast<U32>(m_CommandBuffers.size()), m_CommandBuffers.data());
     vkDestroyCommandPool(m_Device, m_CommandBufferPool, VK_NULL_HANDLE);
 
-    vkDestroyBuffer(m_Device, m_VertexBuffer, VK_NULL_HANDLE);
-    vkFreeMemory(m_Device, m_VertexBufferMemory, VK_NULL_HANDLE);
-    vkDestroyBuffer(m_Device, m_IndexBuffer, VK_NULL_HANDLE);
-    vkFreeMemory(m_Device, m_IndexBufferMemory, VK_NULL_HANDLE);
+    m_Model.reset();
 
     m_GraphicsPipeline.reset();
     m_Swapchain.reset();
@@ -72,12 +72,16 @@ Renderer::~Renderer()
     vkDestroyInstance(m_Instance, VK_NULL_HANDLE);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Renderer::Update()
 {
     U32 imageIndex = m_Queue->AquireNextImage();
     m_Queue->SubmitAsync(m_CommandBuffers[imageIndex]);
     m_Queue->Present(imageIndex);
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Renderer::CreateInstance()
 {
@@ -115,6 +119,8 @@ void Renderer::CreateInstance()
     FFV_CHECK_VK_RESULT(vkCreateInstance(&createInfo, VK_NULL_HANDLE, &m_Instance));
     FFV_TRACE("Created vulkan instance!");
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
                                                     VkDebugUtilsMessageTypeFlagsEXT type,
@@ -174,6 +180,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityF
     return VK_FALSE;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Renderer::CreateDebugCallback()
 {
     const VkDebugUtilsMessengerCreateInfoEXT messengerCreateInfo = {
@@ -193,11 +201,15 @@ void Renderer::CreateDebugCallback()
     FFV_TRACE("Created vulkan debug callback!");
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Renderer::CreateSurface(GLFWwindow* window)
 {
     FFV_CHECK_VK_RESULT(glfwCreateWindowSurface(m_Instance, window, nullptr, &m_Surface));
     FFV_TRACE("Created GLFW window surface!");
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Renderer::CreateDevice()
 {
@@ -240,6 +252,8 @@ void Renderer::CreateDevice()
     FFV_TRACE("Created vulkan device!");
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Renderer::CreateCommandBufferPool()
 {
     const VkCommandPoolCreateInfo commandBufferCreateInfo = { .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -249,59 +263,7 @@ void Renderer::CreateCommandBufferPool()
     FFV_TRACE("Created command pool!");
 }
 
-void Renderer::CreateVertexBuffer()
-{
-    VkDeviceSize bufferSize = sizeof(m_Vertices[0]) * m_Vertices.size();
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
-                 stagingBufferMemory);
-
-    void* dataStaging;
-    FFV_CHECK_VK_RESULT(vkMapMemory(m_Device, stagingBufferMemory, 0, bufferSize, 0, &dataStaging));
-
-    memcpy(dataStaging, m_Vertices.data(), bufferSize);
-    vkUnmapMemory(m_Device, stagingBufferMemory);
-
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_VertexBuffer, m_VertexBufferMemory);
-
-    CopyBuffer(stagingBuffer, m_VertexBuffer, bufferSize);
-
-    vkDestroyBuffer(m_Device, stagingBuffer, VK_NULL_HANDLE);
-    vkFreeMemory(m_Device, stagingBufferMemory, VK_NULL_HANDLE);
-
-    FFV_TRACE("Created vertex buffer with {0} vertices!", m_Vertices.size());
-}
-
-void Renderer::CreateIndexBuffer()
-{
-    VkDeviceSize bufferSize = sizeof(m_Indices[0]) * m_Indices.size();
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
-                 stagingBufferMemory);
-
-    void* dataStaging;
-    FFV_CHECK_VK_RESULT(vkMapMemory(m_Device, stagingBufferMemory, 0, bufferSize, 0, &dataStaging));
-
-    memcpy(dataStaging, m_Indices.data(), bufferSize);
-    vkUnmapMemory(m_Device, stagingBufferMemory);
-
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_IndexBuffer, m_IndexBufferMemory);
-
-    CopyBuffer(stagingBuffer, m_IndexBuffer, bufferSize);
-
-    vkDestroyBuffer(m_Device, stagingBuffer, VK_NULL_HANDLE);
-    vkFreeMemory(m_Device, stagingBufferMemory, VK_NULL_HANDLE);
-
-    FFV_TRACE("Created index buffer with {0} indicies!", m_Indices.size());
-}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Renderer::CreateCommandBuffers(U32 count)
 {
@@ -315,6 +277,8 @@ void Renderer::CreateCommandBuffers(U32 count)
     FFV_CHECK_VK_RESULT(vkAllocateCommandBuffers(m_Device, &commandBufferAllocateInfo, m_CommandBuffers.data()));
     FFV_TRACE("Created {0} command buffers!", count);
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Renderer::RecordCommandBuffers()
 {
@@ -387,8 +351,9 @@ void Renderer::RecordCommandBuffers()
         vkCmdSetViewport(m_CommandBuffers[i], 0, 1, &viewport);
         vkCmdSetScissor(m_CommandBuffers[i], 0, 1, &scissorRect);
         VkDeviceSize offset = 0;
-        vkCmdBindVertexBuffers(m_CommandBuffers[i], 0, 1, &m_VertexBuffer, &offset);
-        vkCmdBindIndexBuffer(m_CommandBuffers[i], m_IndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        VkBuffer vertexBuffer = m_Model->GetVertexBuffer();
+        vkCmdBindVertexBuffers(m_CommandBuffers[i], 0, 1, &vertexBuffer, &offset);
+        vkCmdBindIndexBuffer(m_CommandBuffers[i], m_Model->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
         vkCmdDrawIndexed(m_CommandBuffers[i], static_cast<U32>(m_Indices.size()), 1, 0, 0, 0);
 
         vkCmdEndRendering(m_CommandBuffers[i]);
@@ -401,67 +366,4 @@ void Renderer::RecordCommandBuffers()
 
     FFV_TRACE("Command buffers have been recorded!");
 }
-
-U32 Renderer::FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags properties) const
-{
-    VkPhysicalDeviceMemoryProperties memoryProperties;
-    vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevices->GetSelectedPhysicalDevice().PhysicalDevice, &memoryProperties);
-
-    for (U32 i = 0; i < memoryProperties.memoryTypeCount; i++)
-    {
-        if ((typeFilter & (1 << i)) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
-        {
-            return i;
-        }
-    }
-
-    FFV_ASSERT(false, "Failed to find suitable memory type!", return 0);
-}
-
-void Renderer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags,
-                            VkBuffer& buffer, VkDeviceMemory& bufferMemory)
-{
-    VkBufferCreateInfo bufferCreateInfo = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-                                            .size = size,
-                                            .usage = usageFlags,
-                                            .sharingMode = VK_SHARING_MODE_EXCLUSIVE };
-
-    vkCreateBuffer(m_Device, &bufferCreateInfo, VK_NULL_HANDLE, &buffer);
-
-    VkMemoryRequirements memoryRequirements;
-    vkGetBufferMemoryRequirements(m_Device, buffer, &memoryRequirements);
-    VkMemoryAllocateInfo memoryAllocateInfo = { .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-                                                .allocationSize = memoryRequirements.size,
-                                                .memoryTypeIndex =
-                                                    FindMemoryType(memoryRequirements.memoryTypeBits, propertyFlags) };
-
-    FFV_CHECK_VK_RESULT(vkAllocateMemory(m_Device, &memoryAllocateInfo, VK_NULL_HANDLE, &bufferMemory));
-    FFV_CHECK_VK_RESULT(vkBindBufferMemory(m_Device, buffer, bufferMemory, 0));
-}
-
-void Renderer::CopyBuffer(VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size)
-{
-    VkCommandBufferAllocateInfo commandBufferAllocateInfo = { .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-                                                              .commandPool = m_CommandBufferPool,
-                                                              .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-                                                              .commandBufferCount = 1 };
-    VkCommandBuffer commandCopyBuffer;
-    FFV_CHECK_VK_RESULT(vkAllocateCommandBuffers(m_Device, &commandBufferAllocateInfo, &commandCopyBuffer));
-
-    VkCommandBufferBeginInfo beginInfo = { .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-                                           .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT };
-
-    FFV_CHECK_VK_RESULT(vkBeginCommandBuffer(commandCopyBuffer, &beginInfo));
-    VkBufferCopy copyRegion = { .srcOffset = 0, .dstOffset = 0, .size = size };
-    vkCmdCopyBuffer(commandCopyBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-    FFV_CHECK_VK_RESULT(vkEndCommandBuffer(commandCopyBuffer));
-
-    VkSubmitInfo submitInfo = { .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                                .commandBufferCount = 1,
-                                .pCommandBuffers = &commandCopyBuffer };
-
-    FFV_CHECK_VK_RESULT(vkQueueSubmit(m_Queue->GetQueue(), 1, &submitInfo, VK_NULL_HANDLE));
-    FFV_CHECK_VK_RESULT(vkQueueWaitIdle(m_Queue->GetQueue()));
-}
-
 } // namespace FFV

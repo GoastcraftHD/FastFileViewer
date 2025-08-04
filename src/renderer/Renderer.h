@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Model.h"
 #include "Window.h"
 #include "renderer/GraphicsPipeline.h"
 #include "renderer/PhysicalDevice.h"
@@ -28,15 +29,8 @@ private:
     void CreateSurface(GLFWwindow* window);
     void CreateDevice();
     void CreateCommandBufferPool();
-    void CreateVertexBuffer();
-    void CreateIndexBuffer();
     void CreateCommandBuffers(U32 count);
     void RecordCommandBuffers();
-
-    U32 FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags properties) const;
-    void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags,
-                      VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-    void CopyBuffer(VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size);
 
 private:
     VkInstance m_Instance = VK_NULL_HANDLE;
@@ -54,12 +48,9 @@ private:
     U32 m_QueueFamily = 0;
     std::vector<VkCommandBuffer> m_CommandBuffers;
 
-    VkBuffer m_VertexBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_VertexBufferMemory = VK_NULL_HANDLE;
-    VkBuffer m_IndexBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_IndexBufferMemory = VK_NULL_HANDLE;
-
     // Tmp
+    SharedPtr<Model> m_Model;
+
     const std::vector<GraphicsPipeline::Vertex> m_Vertices = {
         { { -0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
         { { 0.5f, -0.5f },  { 0.0f, 1.0f, 0.0f } },
