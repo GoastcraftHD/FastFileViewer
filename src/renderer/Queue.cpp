@@ -6,7 +6,6 @@
 
 namespace FFV
 {
-
 Queue::Queue(VkDevice device, VkSwapchainKHR swapchain, U32 queueFamily, U32 queueIndex)
     : m_Device(device), m_Swapchain(swapchain)
 {
@@ -15,11 +14,15 @@ Queue::Queue(VkDevice device, VkSwapchainKHR swapchain, U32 queueFamily, U32 que
     CreateSyncObjects();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Queue::~Queue()
 {
     vkDestroySemaphore(m_Device, m_RenderCompleteSemaphore, VK_NULL_HANDLE);
     vkDestroySemaphore(m_Device, m_PresentCompleteSemaphore, VK_NULL_HANDLE);
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 U32 Queue::AquireNextImage() const
 {
@@ -30,6 +33,8 @@ U32 Queue::AquireNextImage() const
     return imageIndex;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Queue::Submit(VkCommandBuffer commandBuffer) const
 {
     const VkSubmitInfo submitInfo = { .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -38,6 +43,8 @@ void Queue::Submit(VkCommandBuffer commandBuffer) const
 
     FFV_CHECK_VK_RESULT(vkQueueSubmit(m_Queue, 1, &submitInfo, VK_NULL_HANDLE));
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Queue::SubmitAsync(VkCommandBuffer commandBuffer) const
 {
@@ -55,6 +62,8 @@ void Queue::SubmitAsync(VkCommandBuffer commandBuffer) const
     FFV_CHECK_VK_RESULT(vkQueueSubmit(m_Queue, 1, &submitInfo, VK_NULL_HANDLE));
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Queue::Present(U32 imageIndex) const
 {
     const VkPresentInfoKHR presentInfo = { .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -68,7 +77,11 @@ void Queue::Present(U32 imageIndex) const
     WaitIdle();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Queue::WaitIdle() const { vkQueueWaitIdle(m_Queue); }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Queue::CreateSyncObjects()
 {

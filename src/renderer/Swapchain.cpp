@@ -56,6 +56,8 @@ Swapchain::Swapchain(VkDevice device, SharedPtr<PhysicalDevices> physicalDevices
     }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Swapchain::~Swapchain()
 {
     for (U32 i = 0; i < m_ImageViews.size(); i++)
@@ -65,6 +67,8 @@ Swapchain::~Swapchain()
 
     vkDestroySwapchainKHR(m_Device, m_Swapchain, VK_NULL_HANDLE);
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 VkSurfaceFormatKHR Swapchain::ChooseSurfaceFormatAndColorSpace(const std::vector<VkSurfaceFormatKHR>& surfaceFormats) const
 {
@@ -81,6 +85,8 @@ VkSurfaceFormatKHR Swapchain::ChooseSurfaceFormatAndColorSpace(const std::vector
     return surfaceFormats[0];
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 U32 Swapchain::ChooseNumImages(const VkSurfaceCapabilitiesKHR& capabilities) const
 {
     U32 requestedNumImages = capabilities.minImageCount + 1;
@@ -95,6 +101,8 @@ U32 Swapchain::ChooseNumImages(const VkSurfaceCapabilitiesKHR& capabilities) con
     }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 VkPresentModeKHR Swapchain::ChoosePresentMode(const std::vector<VkPresentModeKHR>& presentModes) const
 {
     for (const VkPresentModeKHR& presentMode : presentModes)
@@ -107,6 +115,8 @@ VkPresentModeKHR Swapchain::ChoosePresentMode(const std::vector<VkPresentModeKHR
 
     return VK_PRESENT_MODE_FIFO_KHR;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 VkImageView Swapchain::CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
                                        VkImageViewType viewType, U32 layerCount, U32 mipLevels) const

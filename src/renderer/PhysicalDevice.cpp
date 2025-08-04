@@ -151,7 +151,7 @@ PhysicalDevices::PhysicalDevices(const VkInstance& instance, const VkSurfaceKHR&
     }
 }
 
-PhysicalDevices::~PhysicalDevices() {}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 U32 PhysicalDevices::SelectDevice(VkQueueFlags requiredQueueType, bool supportsPresent)
 {
@@ -174,6 +174,9 @@ U32 PhysicalDevices::SelectDevice(VkQueueFlags requiredQueueType, bool supportsP
     FFV_ASSERT(false, "No suitable GFX device was found", ;);
     return 0;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const PhysicalDevice& PhysicalDevices::GetSelectedPhysicalDevice() const
 {
     FFV_ASSERT(m_SelectedDeviceIndex >= 0 && m_SelectedDeviceIndex < m_PhysicalDevices.size(), "Invalid device index!", ;);

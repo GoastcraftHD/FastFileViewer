@@ -28,7 +28,7 @@ class PhysicalDevices
 public:
     PhysicalDevices() = default;
     PhysicalDevices(const VkInstance& instance, const VkSurfaceKHR& surface);
-    ~PhysicalDevices();
+    ~PhysicalDevices() = default;
 
     FFV_DELETE_MOVE_COPY(PhysicalDevices);
 

@@ -107,11 +107,15 @@ GraphicsPipeline::GraphicsPipeline(VkDevice device, std::vector<SharedPtr<Shader
     FFV_TRACE("Created vulkan graphics pipeline!");
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 GraphicsPipeline::~GraphicsPipeline()
 {
     vkDestroyPipelineLayout(m_Device, m_PipelineLayout, VK_NULL_HANDLE);
     vkDestroyPipeline(m_Device, m_Pipeline, VK_NULL_HANDLE);
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GraphicsPipeline::Bind(VkCommandBuffer commandBuffer) const
 {
