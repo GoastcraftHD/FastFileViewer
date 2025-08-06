@@ -1,5 +1,6 @@
 #pragma once
 
+#include "renderer/PhysicalDevice.h"
 #include "util/Assert.h"
 #include "util/Types.h"
 
@@ -7,7 +8,7 @@
 #include <string>
 #include <vector>
 #include <vulkan/vk_enum_string_helper.h>
-
+#include <vulkan/vulkan.h>
 /*
  * In Debug mode a Assert is thrown when the result of the funtion is not VK_SUCCESS.
  *
@@ -46,6 +47,78 @@ public:
         file.read(buffer.data(), fileSize);
 
         return buffer;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static U32 FindMemoryType(SharedPtr<PhysicalDevices> physicalDevice, U32 typeFilter, VkMemoryPropertyFlags properties)
+    {
+        VkPhysicalDeviceMemoryProperties memoryProperties;
+        vkGetPhysicalDeviceMemoryProperties(physicalDevice->GetSelectedPhysicalDevice().PhysicalDevice, &memoryProperties);
+
+        for (U32 i = 0; i < memoryProperties.memoryTypeCount; i++)
+        {
+            if ((typeFilter & (1 << i)) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+            {
+                return i;
+            }
+        }
+
+        FFV_ASSERT(false, "Failed to find suitable memory type!", return 0);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static void CreateBuffer(VkDevice device, SharedPtr<PhysicalDevices> physicalDevice, VkDeviceSize size,
+                             VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkBuffer& buffer,
+                             VkDeviceMemory& bufferMemory)
+    {
+        const VkBufferCreateInfo bufferCreateInfo = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+                                                      .size = size,
+                                                      .usage = usageFlags,
+                                                      .sharingMode = VK_SHARING_MODE_EXCLUSIVE };
+
+        vkCreateBuffer(device, &bufferCreateInfo, VK_NULL_HANDLE, &buffer);
+
+        VkMemoryRequirements memoryRequirements;
+        vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
+        const VkMemoryAllocateInfo memoryAllocateInfo = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = memoryRequirements.size,
+            .memoryTypeIndex = FindMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, propertyFlags)
+        };
+
+        FFV_CHECK_VK_RESULT(vkAllocateMemory(device, &memoryAllocateInfo, VK_NULL_HANDLE, &bufferMemory));
+        FFV_CHECK_VK_RESULT(vkBindBufferMemory(device, buffer, bufferMemory, 0));
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static void CopyBuffer(VkDevice device, VkQueue queue, VkCommandPool commandBufferPool, VkBuffer& srcBuffer,
+                           VkBuffer& dstBuffer, VkDeviceSize size)
+    {
+        const VkCommandBufferAllocateInfo commandBufferAllocateInfo = { .sType =
+                                                                            VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+                                                                        .commandPool = commandBufferPool,
+                                                                        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+                                                                        .commandBufferCount = 1 };
+        VkCommandBuffer commandCopyBuffer;
+        FFV_CHECK_VK_RESULT(vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandCopyBuffer));
+
+        const VkCommandBufferBeginInfo beginInfo = { .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+                                                     .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT };
+
+        FFV_CHECK_VK_RESULT(vkBeginCommandBuffer(commandCopyBuffer, &beginInfo));
+        const VkBufferCopy copyRegion = { .srcOffset = 0, .dstOffset = 0, .size = size };
+        vkCmdCopyBuffer(commandCopyBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+        FFV_CHECK_VK_RESULT(vkEndCommandBuffer(commandCopyBuffer));
+
+        const VkSubmitInfo submitInfo = { .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                                          .commandBufferCount = 1,
+                                          .pCommandBuffers = &commandCopyBuffer };
+
+        FFV_CHECK_VK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
+        FFV_CHECK_VK_RESULT(vkQueueWaitIdle(queue));
     }
 };
 } // namespace FFV

@@ -19,6 +19,7 @@ public:
     const std::vector<VkImage>& GetImages() const { return m_Images; };
     const std::vector<VkImageView>& GetImageViews() const { return m_ImageViews; }
     VkSwapchainKHR GetSwapchain() const { return m_Swapchain; }
+    U32 GetNumImagesInFlight() const { return m_ImagesInFlight; }
 
 private:
     VkSurfaceFormatKHR ChooseSurfaceFormatAndColorSpace(const std::vector<VkSurfaceFormatKHR>& surfaceFormats) const;
@@ -35,5 +36,6 @@ private:
     std::vector<VkImageView> m_ImageViews;
 
     VkSurfaceFormatKHR m_SurfaceFormat;
+    U32 m_ImagesInFlight = 0;
 };
 } // namespace FFV

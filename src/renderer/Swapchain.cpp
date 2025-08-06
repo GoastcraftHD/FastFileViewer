@@ -9,7 +9,7 @@ Swapchain::Swapchain(VkDevice device, SharedPtr<PhysicalDevices> physicalDevices
 {
     const VkSurfaceCapabilitiesKHR& surfaceCapabilities = physicalDevices->GetSelectedPhysicalDevice().SurfaceCapabilities;
 
-    const U32 numImages = ChooseNumImages(surfaceCapabilities);
+    m_ImagesInFlight = ChooseNumImages(surfaceCapabilities);
 
     const std::vector<VkPresentModeKHR>& presentModes = physicalDevices->GetSelectedPhysicalDevice().PresentModes;
     const VkPresentModeKHR presentMode = ChoosePresentMode(presentModes);
@@ -18,7 +18,7 @@ Swapchain::Swapchain(VkDevice device, SharedPtr<PhysicalDevices> physicalDevices
 
     const VkSwapchainCreateInfoKHR swapchainCreateInfo = { .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
                                                            .surface = surface,
-                                                           .minImageCount = numImages,
+                                                           .minImageCount = m_ImagesInFlight,
                                                            .imageFormat = m_SurfaceFormat.format,
                                                            .imageColorSpace = m_SurfaceFormat.colorSpace,
                                                            .imageExtent = surfaceCapabilities.currentExtent,
@@ -39,7 +39,7 @@ Swapchain::Swapchain(VkDevice device, SharedPtr<PhysicalDevices> physicalDevices
 
     U32 numSwapchainImages = 0;
     FFV_CHECK_VK_RESULT(vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &numSwapchainImages, VK_NULL_HANDLE));
-    FFV_ASSERT(numImages == numSwapchainImages, "Swapchain image number doesn't match requested image number!", ;);
+    FFV_ASSERT(m_ImagesInFlight == numSwapchainImages, "Swapchain image number doesn't match requested image number!", ;);
 
     m_Images.resize(numSwapchainImages);
     m_ImageViews.resize(numSwapchainImages);

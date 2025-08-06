@@ -49,11 +49,6 @@ private:
     void CreateVertexBuffer(const std::vector<Vertex>& vertices);
     void CreateIndexBuffer(const std::vector<U32>& indices);
 
-    U32 FindMemoryType(U32 typeFilter, VkMemoryPropertyFlags properties) const;
-    void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags,
-                      VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-    void CopyBuffer(VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size);
-
 private:
     VkDevice m_Device = VK_NULL_HANDLE;
     VkCommandPool m_CommandBufferPool = VK_NULL_HANDLE;

@@ -18,9 +18,9 @@ Shader::Shader(VkDevice device, const std::string& path) : m_Device(device)
 
     std::vector<char> buffer = Util::ReadBinaryFile(absolutePath);
 
-    VkShaderModuleCreateInfo shaderModuleCreateInfo = { .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-                                                        .codeSize = static_cast<U32>(buffer.size()),
-                                                        .pCode = reinterpret_cast<const U32*>(buffer.data()) };
+    const VkShaderModuleCreateInfo shaderModuleCreateInfo = { .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+                                                              .codeSize = static_cast<U32>(buffer.size()),
+                                                              .pCode = reinterpret_cast<const U32*>(buffer.data()) };
 
     FFV_CHECK_VK_RESULT(vkCreateShaderModule(m_Device, &shaderModuleCreateInfo, VK_NULL_HANDLE, &m_Module));
 

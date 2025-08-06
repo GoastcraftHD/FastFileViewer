@@ -30,13 +30,13 @@ Renderer::Renderer(SharedPtr<Window> window) : m_Window(window)
 
     std::vector<SharedPtr<Shader>> shaders = { MakeShared<Shader>(m_Device, "default.vert.spv"),
                                                MakeShared<Shader>(m_Device, "default.frag.spv") };
-    m_GraphicsPipeline = MakeShared<GraphicsPipeline>(m_Device, shaders);
+    m_GraphicsPipeline = MakeShared<GraphicsPipeline>(m_Device, m_Swapchain, m_PhysicalDevices, m_Window, shaders);
 
     CreateCommandBufferPool();
 
     m_Model = MakeShared<Model>(m_Vertices, m_Indices, m_Device, m_PhysicalDevices, m_Queue, m_CommandBufferPool);
 
-    CreateCommandBuffers(static_cast<U32>(m_Swapchain->GetImageViews().size()));
+    CreateCommandBuffers(m_Swapchain->GetNumImagesInFlight());
     RecordCommandBuffers();
 }
 
@@ -77,6 +77,7 @@ Renderer::~Renderer()
 void Renderer::Update()
 {
     U32 imageIndex = m_Queue->AquireNextImage();
+    m_GraphicsPipeline->UpdateUniformBuffer(imageIndex);
     m_Queue->SubmitAsync(m_CommandBuffers[imageIndex]);
     m_Queue->Present(imageIndex);
 }
@@ -354,6 +355,9 @@ void Renderer::RecordCommandBuffers()
         VkBuffer vertexBuffer = m_Model->GetVertexBuffer();
         vkCmdBindVertexBuffers(m_CommandBuffers[i], 0, 1, &vertexBuffer, &offset);
         vkCmdBindIndexBuffer(m_CommandBuffers[i], m_Model->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindDescriptorSets(m_CommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                m_GraphicsPipeline->GetPipelineLayout(), 0, 1, &m_GraphicsPipeline->GetDescriptorSets()[i],
+                                0, nullptr);
         vkCmdDrawIndexed(m_CommandBuffers[i], static_cast<U32>(m_Indices.size()), 1, 0, 0, 0);
 
         vkCmdEndRendering(m_CommandBuffers[i]);

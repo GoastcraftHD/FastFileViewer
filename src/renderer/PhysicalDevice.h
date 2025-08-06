@@ -30,7 +30,7 @@ public:
     PhysicalDevices(const VkInstance& instance, const VkSurfaceKHR& surface);
     ~PhysicalDevices() = default;
 
-    FFV_DELETE_MOVE_COPY(PhysicalDevices);
+    // FFV_DELETE_MOVE_COPY(PhysicalDevices);
 
     U32 SelectDevice(VkQueueFlags requiredQueueType, bool supportsPresent);
     const PhysicalDevice& GetSelectedPhysicalDevice() const;
