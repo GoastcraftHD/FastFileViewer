@@ -22,7 +22,7 @@ Application::Application()
     FFV_ASSERT(glfwInit(), "Couldn't initilize GLFW!", exit(1));
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     m_Window = MakeShared<Window>("Fast file viewer", 800, 600);
     m_Renderer = MakeShared<Renderer>(m_Window);
@@ -41,5 +41,7 @@ void Application::Run()
         glfwPollEvents();
         m_Renderer->Update();
     }
+
+    m_Renderer->WaitIdle();
 }
 } // namespace FFV

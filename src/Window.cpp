@@ -11,6 +11,8 @@ Window::Window(const std::string& title, U32 width, U32 height)
     m_Window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     FFV_ASSERT(m_Window, "Couldn't create window!", ;);
 
+    glfwSetWindowSizeLimits(m_Window, 1, 1, GLFW_DONT_CARE, GLFW_DONT_CARE);
+
     FFV_TRACE("Created window '{0}' ({1}x{2})", title, width, height);
 }
 

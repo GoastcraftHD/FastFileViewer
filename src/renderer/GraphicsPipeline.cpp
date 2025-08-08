@@ -162,8 +162,9 @@ void GraphicsPipeline::UpdateUniformBuffer(U32 imageIndex)
         .model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
         .view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
         .proj = glm::perspective(glm::radians(45.0f),
-                                 static_cast<float>(m_Window->GetWidth()) / static_cast<float>(m_Window->GetHeight()), 0.1f,
-                                 10.0f)
+                                 static_cast<float>(std::max(m_Window->GetWidth(), 1u)) /
+                                     static_cast<float>(std::max(m_Window->GetHeight(), 1u)),
+                                 0.1f, 10.0f)
     };
 
     ubo.proj[1][1] *= -1.0f;

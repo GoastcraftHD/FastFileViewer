@@ -4,30 +4,68 @@
 
 namespace FFV
 {
-Swapchain::Swapchain(VkDevice device, SharedPtr<PhysicalDevices> physicalDevices, VkSurfaceKHR surface, U32 queueFamily)
-    : m_Device(device)
+Swapchain::Swapchain(VkDevice device, SharedPtr<PhysicalDevices> physicalDevices, SharedPtr<Window> window,
+                     VkSurfaceKHR surface, U32 queueFamily)
+    : m_Device(device), m_PhysicalDevices(physicalDevices), m_Window(window), m_Surface(surface), m_QueueFamily(queueFamily)
 {
-    const VkSurfaceCapabilitiesKHR& surfaceCapabilities = physicalDevices->GetSelectedPhysicalDevice().SurfaceCapabilities;
+    CreateSwapchain();
+    CreateImageViews();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Swapchain::~Swapchain() { CleanSwapchain(); }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Swapchain::Recreate()
+{
+    I32 width = 0;
+    I32 height = 0;
+    glfwGetFramebufferSize(m_Window->GetNativeWindow(), &width, &height);
+
+    while (width == 0 || height == 0)
+    {
+        glfwGetFramebufferSize(m_Window->GetNativeWindow(), &width, &height);
+        glfwWaitEvents();
+    }
+
+    vkDeviceWaitIdle(m_Device);
+
+    CleanSwapchain();
+
+    CreateSwapchain();
+    CreateImageViews();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Swapchain::CreateSwapchain()
+{
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_PhysicalDevices->GetSelectedPhysicalDevice().PhysicalDevice, m_Surface,
+                                              &surfaceCapabilities);
 
     m_ImagesInFlight = ChooseNumImages(surfaceCapabilities);
 
-    const std::vector<VkPresentModeKHR>& presentModes = physicalDevices->GetSelectedPhysicalDevice().PresentModes;
+    const std::vector<VkPresentModeKHR>& presentModes = m_PhysicalDevices->GetSelectedPhysicalDevice().PresentModes;
     const VkPresentModeKHR presentMode = ChoosePresentMode(presentModes);
 
-    m_SurfaceFormat = ChooseSurfaceFormatAndColorSpace(physicalDevices->GetSelectedPhysicalDevice().SurfaceFormats);
+    m_SurfaceFormat = ChooseSurfaceFormatAndColorSpace(m_PhysicalDevices->GetSelectedPhysicalDevice().SurfaceFormats);
+    m_Extent = ChooseSwapchainExtent(surfaceCapabilities);
 
     const VkSwapchainCreateInfoKHR swapchainCreateInfo = { .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-                                                           .surface = surface,
+                                                           .surface = m_Surface,
                                                            .minImageCount = m_ImagesInFlight,
                                                            .imageFormat = m_SurfaceFormat.format,
                                                            .imageColorSpace = m_SurfaceFormat.colorSpace,
-                                                           .imageExtent = surfaceCapabilities.currentExtent,
+                                                           .imageExtent = m_Extent,
                                                            .imageArrayLayers = 1,
                                                            .imageUsage = (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                                           VK_IMAGE_USAGE_TRANSFER_DST_BIT),
                                                            .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
                                                            .queueFamilyIndexCount = 1,
-                                                           .pQueueFamilyIndices = &queueFamily,
+                                                           .pQueueFamilyIndices = &m_QueueFamily,
                                                            .preTransform = surfaceCapabilities.currentTransform,
                                                            .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
                                                            .presentMode = presentMode,
@@ -36,7 +74,12 @@ Swapchain::Swapchain(VkDevice device, SharedPtr<PhysicalDevices> physicalDevices
     FFV_CHECK_VK_RESULT(vkCreateSwapchainKHR(m_Device, &swapchainCreateInfo, VK_NULL_HANDLE, &m_Swapchain));
 
     FFV_TRACE("Created vulkan swapchain!");
+}
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Swapchain::CreateImageViews()
+{
     U32 numSwapchainImages = 0;
     FFV_CHECK_VK_RESULT(vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &numSwapchainImages, VK_NULL_HANDLE));
     FFV_ASSERT(m_ImagesInFlight == numSwapchainImages, "Swapchain image number doesn't match requested image number!", ;);
@@ -58,7 +101,7 @@ Swapchain::Swapchain(VkDevice device, SharedPtr<PhysicalDevices> physicalDevices
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Swapchain::~Swapchain()
+void Swapchain::CleanSwapchain()
 {
     for (U32 i = 0; i < m_ImageViews.size(); i++)
     {
@@ -66,6 +109,17 @@ Swapchain::~Swapchain()
     }
 
     vkDestroySwapchainKHR(m_Device, m_Swapchain, VK_NULL_HANDLE);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+VkExtent2D Swapchain::ChooseSwapchainExtent(const VkSurfaceCapabilitiesKHR& capabilities) const
+{
+
+    VkExtent2D extent = { .width = m_Window->GetWidth(), .height = m_Window->GetHeight() };
+    extent.width = std::clamp(extent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+    extent.height = std::clamp(extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+    return extent;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

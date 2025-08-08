@@ -22,6 +22,7 @@ public:
     FFV_DELETE_MOVE_COPY(Renderer);
 
     void Update();
+    void WaitIdle() const { vkDeviceWaitIdle(m_Device); }
 
 private:
     void CreateInstance();
@@ -30,7 +31,11 @@ private:
     void CreateDevice();
     void CreateCommandBufferPool();
     void CreateCommandBuffers(U32 count);
-    void RecordCommandBuffers();
+    void RecordCommandBuffer(U32 imageIndex);
+
+    void CreateImageBarrier(U32 imageIndex, VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags2 srcAccessMask,
+                            VkAccessFlags2 dstAccessMask, VkPipelineStageFlags2 srcStageMask,
+                            VkPipelineStageFlags2 dstStageMask);
 
 private:
     VkInstance m_Instance = VK_NULL_HANDLE;

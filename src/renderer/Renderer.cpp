@@ -9,6 +9,7 @@
 #include "util/Util.h"
 #include "vulkan/vulkan_core.h"
 
+#include <chrono>
 #include <vector>
 
 namespace FFV
@@ -25,8 +26,8 @@ Renderer::Renderer(SharedPtr<Window> window) : m_Window(window)
     m_QueueFamily = m_PhysicalDevices->SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
 
     CreateDevice();
-    m_Swapchain = MakeShared<Swapchain>(m_Device, m_PhysicalDevices, m_Surface, m_QueueFamily);
-    m_Queue = MakeShared<Queue>(m_Device, m_Swapchain->GetSwapchain(), m_QueueFamily, 0);
+    m_Swapchain = MakeShared<Swapchain>(m_Device, m_PhysicalDevices, m_Window, m_Surface, m_QueueFamily);
+    m_Queue = MakeShared<Queue>(m_Device, m_Swapchain, m_QueueFamily, 0);
 
     std::vector<SharedPtr<Shader>> shaders = { MakeShared<Shader>(m_Device, "default.vert.spv"),
                                                MakeShared<Shader>(m_Device, "default.frag.spv") };
@@ -37,7 +38,6 @@ Renderer::Renderer(SharedPtr<Window> window) : m_Window(window)
     m_Model = MakeShared<Model>(m_Vertices, m_Indices, m_Device, m_PhysicalDevices, m_Queue, m_CommandBufferPool);
 
     CreateCommandBuffers(m_Swapchain->GetNumImagesInFlight());
-    RecordCommandBuffers();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,10 +76,28 @@ Renderer::~Renderer()
 
 void Renderer::Update()
 {
+    static U32 frameCount = 0;
+    static F64 lastTime = glfwGetTime();
+    static F64 fps = 0.0;
+
     U32 imageIndex = m_Queue->AquireNextImage();
+
+    RecordCommandBuffer(imageIndex);
     m_GraphicsPipeline->UpdateUniformBuffer(imageIndex);
-    m_Queue->SubmitAsync(m_CommandBuffers[imageIndex]);
+    m_Queue->SubmitAsync(m_CommandBuffers[imageIndex], imageIndex);
     m_Queue->Present(imageIndex);
+
+    // FPS calculation
+    frameCount++;
+    F64 currentTime = glfwGetTime();
+    if (currentTime - lastTime >= 1.0)
+    {
+        fps = frameCount / (currentTime - lastTime);
+        frameCount = 0;
+        lastTime = currentTime;
+    }
+
+    glfwSetWindowTitle(m_Window->GetNativeWindow(), std::format("Fast File Viewer - FPS: {:.1f}", fps).c_str());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -222,12 +240,8 @@ void Renderer::CreateDevice()
                                                       .pQueuePriorities = &queuePriorities[0] };
 
     const std::vector<const char*> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-                                                  VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME };
-
-    FFV_ASSERT(m_PhysicalDevices->GetSelectedPhysicalDevice().Features.geometryShader != VK_FALSE,
-               "Device does not support Geometry Shaders!", exit(1));
-    FFV_ASSERT(m_PhysicalDevices->GetSelectedPhysicalDevice().Features.tessellationShader != VK_FALSE,
-               "Device does not support Tessellation Shaders!", exit(1));
+                                                  VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME,
+                                                  VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME };
 
     VkPhysicalDeviceVulkan13Features vk13Features = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
     VkPhysicalDeviceVulkan12Features vk12Features = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
@@ -258,6 +272,7 @@ void Renderer::CreateDevice()
 void Renderer::CreateCommandBufferPool()
 {
     const VkCommandPoolCreateInfo commandBufferCreateInfo = { .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+                                                              .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
                                                               .queueFamilyIndex = m_QueueFamily };
 
     FFV_CHECK_VK_RESULT(vkCreateCommandPool(m_Device, &commandBufferCreateInfo, VK_NULL_HANDLE, &m_CommandBufferPool));
@@ -281,93 +296,91 @@ void Renderer::CreateCommandBuffers(U32 count)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Renderer::RecordCommandBuffers()
+void Renderer::RecordCommandBuffer(U32 imageIndex)
 {
-    const std::vector<VkImageView>& imageViews = m_Swapchain->GetImageViews();
-    const std::vector<VkImage>& images = m_Swapchain->GetImages();
-    const U32 windowWidth = m_Window->GetWidth();
-    const U32 windowHeight = m_Window->GetHeight();
+    FFV_ASSERT(imageIndex < m_CommandBuffers.size(),
+               std::format("Image index {} is out of bounds! Command buffers size: {}", imageIndex, m_CommandBuffers.size()),
+               ;);
+
+    const VkExtent2D swapchainExtent = m_Swapchain->GetExtent();
+
+    const VkCommandBufferBeginInfo beginInfo = { .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+    FFV_CHECK_VK_RESULT(vkBeginCommandBuffer(m_CommandBuffers[imageIndex], &beginInfo));
+
+    CreateImageBarrier(imageIndex, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ACCESS_2_NONE,
+                       VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT, VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT,
+                       VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT);
+
     const VkClearValue clearColor = { .color = { .float32 = { 0.1f, 0.1f, 0.1f, 1.0f } } };
-    const VkViewport viewport = { .width = static_cast<float>(windowWidth), .height = static_cast<float>(windowHeight) };
-    const VkRect2D scissorRect = {
-        .extent = { .width = windowWidth, .height = windowHeight }
+    const VkRenderingAttachmentInfoKHR colorAttachment = { .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
+                                                           .imageView = m_Swapchain->GetImageViews()[imageIndex],
+                                                           .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                           .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                           .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                                                           .clearValue = clearColor };
+
+    const VkRenderingInfoKHR renderingInfo = {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+        .renderArea = { { 0, 0 }, swapchainExtent },
+        .layerCount = 1,
+        .viewMask = 0,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &colorAttachment
     };
-    const VkImageSubresourceRange imageSubResourceRange = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1
+    vkCmdBeginRendering(m_CommandBuffers[imageIndex], &renderingInfo);
+
+    m_GraphicsPipeline->Bind(m_CommandBuffers[imageIndex]);
+
+    const VkViewport viewport = { .width = static_cast<float>(swapchainExtent.width),
+                                  .height = static_cast<float>(swapchainExtent.height) };
+    vkCmdSetViewport(m_CommandBuffers[imageIndex], 0, 1, &viewport);
+
+    const VkRect2D scissorRect = { .extent = swapchainExtent };
+    vkCmdSetScissor(m_CommandBuffers[imageIndex], 0, 1, &scissorRect);
+
+    VkDeviceSize offset = 0;
+    VkBuffer vertexBuffer = m_Model->GetVertexBuffer();
+    vkCmdBindVertexBuffers(m_CommandBuffers[imageIndex], 0, 1, &vertexBuffer, &offset);
+    vkCmdBindIndexBuffer(m_CommandBuffers[imageIndex], m_Model->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindDescriptorSets(m_CommandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            m_GraphicsPipeline->GetPipelineLayout(), 0, 1,
+                            &m_GraphicsPipeline->GetDescriptorSets()[imageIndex], 0, nullptr);
+    vkCmdDrawIndexed(m_CommandBuffers[imageIndex], static_cast<U32>(m_Indices.size()), 1, 0, 0, 0);
+
+    vkCmdEndRendering(m_CommandBuffers[imageIndex]);
+
+    CreateImageBarrier(imageIndex, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                       VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_2_NONE,
+                       VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT);
+
+    FFV_CHECK_VK_RESULT(vkEndCommandBuffer(m_CommandBuffers[imageIndex]));
+}
+void Renderer::CreateImageBarrier(U32 imageIndex, VkImageLayout oldLayout, VkImageLayout newLayout,
+                                  VkAccessFlags2 srcAccessMask, VkAccessFlags2 dstAccessMask,
+                                  VkPipelineStageFlags2 srcStageMask, VkPipelineStageFlags2 dstStageMask)
+{
+    VkImageMemoryBarrier2 imageBarrier = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+        .srcStageMask = srcStageMask,
+        .srcAccessMask = srcAccessMask,
+        .dstStageMask = dstStageMask,
+        .dstAccessMask = dstAccessMask,
+        .oldLayout = oldLayout,
+        .newLayout = newLayout,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = m_Swapchain->GetImages()[imageIndex],
+        .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                             .baseMipLevel = 0,
+                             .levelCount = 1,
+                             .baseArrayLayer = 0,
+                             .layerCount = 1 }
     };
 
-    const VkCommandBufferBeginInfo beginInfo = { .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-                                                 .flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT };
+    VkDependencyInfo dependencyInfo = { .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                                        .imageMemoryBarrierCount = 1,
+                                        .pImageMemoryBarriers = &imageBarrier };
 
-    for (U32 i = 0; i < m_CommandBuffers.size(); i++)
-    {
-        VkImageMemoryBarrier presentToClearBarrier = { .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                                                       .srcAccessMask = VK_ACCESS_MEMORY_READ_BIT,
-                                                       .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-                                                       .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                                       .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                                       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                                                       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                                                       .image = images[i],
-                                                       .subresourceRange = imageSubResourceRange };
-
-        VkImageMemoryBarrier clearToPresentBarrier = { .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                                                       .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-                                                       .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
-                                                       .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                                       .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                                                       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                                                       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                                                       .image = images[i],
-                                                       .subresourceRange = imageSubResourceRange };
-
-        const VkRenderingAttachmentInfoKHR colorAttachment = { .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
-                                                               .imageView = imageViews[i],
-                                                               .imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
-                                                               .resolveMode = VK_RESOLVE_MODE_NONE,
-                                                               .resolveImageView = VK_NULL_HANDLE,
-                                                               .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                                               .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                                               .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                                               .clearValue = clearColor };
-
-        const VkRenderingInfoKHR renderingInfo = {
-            .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
-            .renderArea = { { 0, 0 }, { windowWidth, windowHeight } },
-            .layerCount = 1,
-            .viewMask = 0,
-            .colorAttachmentCount = 1,
-            .pColorAttachments = &colorAttachment
-        };
-
-        FFV_CHECK_VK_RESULT(vkBeginCommandBuffer(m_CommandBuffers[i], &beginInfo));
-
-        vkCmdPipelineBarrier(m_CommandBuffers[i], VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
-                             VK_NULL_HANDLE, 0, VK_NULL_HANDLE, 1, &presentToClearBarrier);
-
-        vkCmdBeginRendering(m_CommandBuffers[i], &renderingInfo);
-
-        m_GraphicsPipeline->Bind(m_CommandBuffers[i]);
-
-        vkCmdSetViewport(m_CommandBuffers[i], 0, 1, &viewport);
-        vkCmdSetScissor(m_CommandBuffers[i], 0, 1, &scissorRect);
-        VkDeviceSize offset = 0;
-        VkBuffer vertexBuffer = m_Model->GetVertexBuffer();
-        vkCmdBindVertexBuffers(m_CommandBuffers[i], 0, 1, &vertexBuffer, &offset);
-        vkCmdBindIndexBuffer(m_CommandBuffers[i], m_Model->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
-        vkCmdBindDescriptorSets(m_CommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                m_GraphicsPipeline->GetPipelineLayout(), 0, 1, &m_GraphicsPipeline->GetDescriptorSets()[i],
-                                0, nullptr);
-        vkCmdDrawIndexed(m_CommandBuffers[i], static_cast<U32>(m_Indices.size()), 1, 0, 0, 0);
-
-        vkCmdEndRendering(m_CommandBuffers[i]);
-
-        vkCmdPipelineBarrier(m_CommandBuffers[i], VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0,
-                             VK_NULL_HANDLE, 0, VK_NULL_HANDLE, 1, &clearToPresentBarrier);
-
-        FFV_CHECK_VK_RESULT(vkEndCommandBuffer(m_CommandBuffers[i]));
-    }
-
-    FFV_TRACE("Command buffers have been recorded!");
+    vkCmdPipelineBarrier2(m_CommandBuffers[imageIndex], &dependencyInfo);
 }
 } // namespace FFV
